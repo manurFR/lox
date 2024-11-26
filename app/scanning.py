@@ -1,15 +1,22 @@
+SINGLE_CHARACTER_LEXEMES = {
+    '(': "LEFT_PAREN",
+    ')': "RIGHT_PAREN",
+    '{': "LEFT_BRACE",
+    '}': "RIGHT_BRACE",
+    '*': "STAR",
+    '.': "DOT",
+    ',': "COMMA",
+    '+': "PLUS",
+    '-': "MINUS",
+    ';': "SEMICOLON"
+}
+
 def tokenize(source):
     tokens = []
     for char in source:
         match char:
-            case '(':
-                token = "LEFT_PAREN"
-            case ')':
-                token = "RIGHT_PAREN"
-            case '{':
-                token = "LEFT_BRACE"
-            case '}':
-                token = "RIGHT_BRACE"
+            case str if len(char) == 1:
+                token = SINGLE_CHARACTER_LEXEMES.get(char)
             case _:
                 token = "UNKNOWN"
 
