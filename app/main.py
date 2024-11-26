@@ -21,16 +21,12 @@ def main():
     with open(filename) as file:
         file_contents = file.read()
 
-    errors = None
-    if file_contents:
-        tokens, errors = tokenize(file_contents)
-        for line, message in errors:
-            print(f"[line {line}] Error: {message}", file=sys.stderr)
-        for tok, char, val in tokens:
-            print(f"{tok} {char} {val if val is not None else 'null'}")
+    tokens, errors = tokenize(file_contents)
+    for line, message in errors:
+        print(f"[line {line}] Error: {message}", file=sys.stderr)
+    for tok in tokens:
+        print(tok)
     
-    print("EOF  null")
-
     if errors:
         sys.exit(65)
 

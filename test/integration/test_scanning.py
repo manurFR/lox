@@ -61,3 +61,18 @@ EOF  null
 """.strip().split("\n")
     
     assert status == 65
+
+
+def test_tokenize_equal(run_lox):
+    status, output, _ = run_lox(command="tokenize", lox_source="={===}")
+
+    assert status == 0
+
+    assert output.split("\n") == """
+EQUAL = null
+LEFT_BRACE { null
+EQUAL_EQUAL == null
+EQUAL = null
+RIGHT_BRACE } null
+EOF  null
+""".strip().split("\n")
