@@ -10,8 +10,5 @@ def run_lox(tmp_path):
 
         cmd = ["python3", "-m", "app.main", command, str(tmp_path / "integration.lox")]
         process = subprocess.run(cmd, text=True, capture_output=True)
-        if process.returncode == 0:
-            return process.stdout.rstrip()
-        else:
-            raise RuntimeError(process.stderr.rstrip())
+        return process.returncode, process.stdout.rstrip(), process.stderr.rstrip()
     return _run_lox

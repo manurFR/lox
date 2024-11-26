@@ -12,14 +12,15 @@ SINGLE_CHARACTER_LEXEMES = {
 }
 
 def tokenize(source):
-    tokens = []
+    tokens, errors = [], []
     for char in source:
         match char:
-            case str if len(char) == 1:
+            case str if char in SINGLE_CHARACTER_LEXEMES:
                 token = SINGLE_CHARACTER_LEXEMES.get(char)
             case _:
-                token = "UNKNOWN"
+                errors.append((1, f"Unexpected character: {char}"))
+                continue
 
         tokens.append((token, char, None))
 
-    return tokens
+    return tokens, errors
