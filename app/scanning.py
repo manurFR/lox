@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-SINGLE_CHARACTER_LEXEMES = {
+LEXEMES = {
     '(': "LEFT_PAREN",
     ')': "RIGHT_PAREN",
     '{': "LEFT_BRACE",
@@ -12,7 +12,16 @@ SINGLE_CHARACTER_LEXEMES = {
     '+': "PLUS",
     '-': "MINUS",
     ';': "SEMICOLON",
+    '=': "EQUAL",
+    '==': "EQUAL_EQUAL",
+    '!': "BANG",
+    '!=': "BANG_EQUAL",
 }
+MAX_LEX_LENGTH = max(len(lex) for lex in LEXEMES.keys())
+# list of dicts ; the first dict is the sub-dict of lexemes whose length is the max, the second those whose length is one less, etc.
+LEXEMES_DESC_LENGTH = list(
+    reversed([{lex: toktype for lex, toktype in LEXEMES.items() if len(lex) == lexlength} for lexlength in range(1, MAX_LEX_LENGTH + 1)])
+)
 
 @dataclass
 class Token:
@@ -26,33 +35,28 @@ class Token:
     
 
 def tokenize(source):
-    def next_char(index):
-        if index >= len(source) - 1:
-            return ""
-        return source[index + 1]
-
     tokens, errors = [], []
     current = 0
     while current < len(source):
-        char = source[current]
-        start, end = current, current + 1
-        if char in SINGLE_CHARACTER_LEXEMES:
-            toktype = SINGLE_CHARACTER_LEXEMES.get(char, "")
-        else:
-            match char:
-                case '=':
-                    if next_char(current) == '=':
-                        toktype = "EQUAL_EQUAL"
-                        end += 1
-                    else:
-                        toktype = "EQUAL"
-                case _:
-                    errors.append((1, f"Unexpected character: {char}"))
-                    current = end
-                    continue
+        for lexemes in LEXEMES_DESC_LENGTH:
+            if len(lexemes) == 0:
+                continue
+            lexlength = len(list(lexemes.keys())[0])
+            end = current + lexlength
 
-        tokens.append(Token(toktype, source[start : end], None))
-        current = end
+            # skip lexemes of size N if there is not at least N characters remaining to scan
+            if end > len(source):
+                continue
+            
+            chars = source[current:end]
+            if chars in lexemes:
+                toktype = lexemes[chars]
+                tokens.append(Token(toktype, chars, None))
+                current = end
+                break
+        else:  # 'for' ended by finding no matching lexeme
+            errors.append((1, f"Unexpected character: {chars}"))
+            current += 1
     
     tokens.append(Token("EOF", None, None))
 
