@@ -16,6 +16,10 @@ LEXEMES = {
     '==': "EQUAL_EQUAL",
     '!': "BANG",
     '!=': "BANG_EQUAL",
+    '<': "LESS",
+    '<=': "LESS_EQUAL",
+    '>': "GREATER",
+    '>=': "GREATER_EQUAL",
 }
 MAX_LEX_LENGTH = max(len(lex) for lex in LEXEMES.keys())
 # list of dicts ; the first dict is the sub-dict of lexemes whose length is the max, the second those whose length is one less, etc.
