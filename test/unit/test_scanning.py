@@ -104,6 +104,17 @@ LEFT_PAREN ( null
 STRING "foo baz" foo baz
 EOF  null
 """.strip().split("\n")
+    
+
+# def test_tokenize_string_literals2():
+#     tokens, _ = tokenize('("hello"\n+')
+
+#     assert _format(tokens) == """
+# LEFT_PAREN ( null
+# STRING "hello" hello
+# PLUS + null
+# EOF  null
+# """.strip().split("\n")
 
 
 def test_tokenize_unterminated_string():
@@ -116,6 +127,26 @@ def test_tokenize_unterminated_string():
 
     assert _format(tokens) == """
 STAR * null
+EOF  null
+""".strip().split("\n")
+    
+
+def test_tokenize_numbers():
+    tokens, _ = tokenize("/12.34/")
+
+    assert _format(tokens) == """
+SLASH / null
+NUMBER 12.34 12.34
+SLASH / null
+EOF  null
+""".strip().split("\n")
+    
+
+def test_tokenize_integers():
+    tokens, _ = tokenize("12")
+
+    assert _format(tokens) == """
+NUMBER 12 12.0
 EOF  null
 """.strip().split("\n")
 

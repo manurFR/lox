@@ -1,37 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
 
-LEXEMES = {
-    '(': "LEFT_PAREN",
-    ')': "RIGHT_PAREN",
-    '{': "LEFT_BRACE",
-    '}': "RIGHT_BRACE",
-    '*': "STAR",
-    '.': "DOT",
-    ',': "COMMA",
-    '+': "PLUS",
-    '-': "MINUS",
-    ';': "SEMICOLON",
-    '=': "EQUAL",
-    '==': "EQUAL_EQUAL",
-    '!': "BANG",
-    '!=': "BANG_EQUAL",
-    '<': "LESS",
-    '<=': "LESS_EQUAL",
-    '>': "GREATER",
-    '>=': "GREATER_EQUAL",
-    '/': "SLASH",
-    '//': "COMMENT",
-    ' ': "SPACE",
-    '\t': "SPACE",
-    '\n': "NEWLINE",
-    '"': "STRING"
-}
-MAX_LEX_LENGTH = max(len(lex) for lex in LEXEMES.keys())
-# list of dicts ; the first dict is the sub-dict of lexemes whose length is the max, the second those whose length is one less, etc.
-LEXEMES_DESC_LENGTH = list(
-    reversed([{lex: toktype for lex, toktype in LEXEMES.items() if len(lex) == lexlength} for lexlength in range(1, MAX_LEX_LENGTH + 1)])
-)
+from lexemes import LEXEMES_DESC_LENGTH
+
 
 @dataclass
 class Token:
@@ -42,7 +13,7 @@ class Token:
     def __repr__(self) -> str:
         """The formatted output for this token"""
         return f"{self.toktype} {self.lexeme if self.lexeme else ''} {self.literal if self.literal is not None else 'null'}"
-    
+
 
 def tokenize(source):
     tokens, errors = [], []
@@ -78,6 +49,22 @@ def tokenize(source):
                         literal = chars.strip('"')
                         tokens.append(Token(toktype, chars, literal))
                         line += literal.count("\n")  # don't forget to increment line with multi-line strings
+                    case "DIGIT":  # capture the whole number literal, including optional dot (but not at the end)
+                        while True:
+                            if end > len(source) - 1:
+                                break  # we've reached the end of source, and thus the end of the number
+                            else:
+                                lookahead = source[end]
+                                if lexemes.get(lookahead, "?") == "DIGIT":
+                                    end += 1
+                                elif lookahead == '.' and lexemes.get(source[end + 1], "?") == "DIGIT":
+                                    end += 1
+                                else:
+                                    break  # the next character is not a digit or a dot: we've reached the end of the number
+                        # we've reached the end of the number (or of the source)
+                        chars = source[current:end]
+                        literal = float(chars)
+                        tokens.append(Token("NUMBER", chars, literal))
                     case "SPACE":  # ignore
                         pass
                     case "NEWLINE":  # ignore but note the line increment
