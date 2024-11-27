@@ -94,6 +94,30 @@ PLUS + null
 MINUS - null
 EOF  null
 """.strip().split("\n")
+    
+
+def test_tokenize_string_literals():
+    tokens, _ = tokenize('("foo baz"')
+
+    assert _format(tokens) == """
+LEFT_PAREN ( null
+STRING "foo baz" foo baz
+EOF  null
+""".strip().split("\n")
+
+
+def test_tokenize_unterminated_string():
+    tokens, errors = tokenize('''
+                              *
+                                 "no end to this string
+                              ()'''.strip())
+
+    assert errors == [(2, "Unterminated string.")]
+
+    assert _format(tokens) == """
+STAR * null
+EOF  null
+""".strip().split("\n")
 
 
 def _format(tokens):

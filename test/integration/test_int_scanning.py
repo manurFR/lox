@@ -118,7 +118,7 @@ EOF  null
 """.strip().split("\n")
 
 
-def test_whitespaces_newlines(run_lox):
+def test_tokenize_whitespaces_newlines(run_lox):
     status, output, stderr = run_lox(command="tokenize", lox_source="""
 # (\t 
  )  // cool remark
@@ -133,6 +133,29 @@ EOF  null
     assert stderr.split("\n") == """
 [line 1] Error: Unexpected character: #
 [line 3] Error: Unexpected character: $
+""".strip().split("\n")
+    
+    assert status == 65
+
+
+def test_tokenize_multiline_strings(run_lox):
+    status, output, stderr = run_lox(command="tokenize", lox_source='''
+/"hello"
++  "this is
+a multi-line
+string"
+$'''.strip())  # invalid caracters on line 5, including newlines inside the string
+
+    assert output.split("\n") == """
+SLASH / null
+STRING "hello" hello
+PLUS + null
+STRING "this is\na multi-line\nstring" this is\na multi-line\nstring
+EOF  null
+""".strip().split("\n")
+    
+    assert stderr.split("\n") == """
+[line 5] Error: Unexpected character: $
 """.strip().split("\n")
     
     assert status == 65

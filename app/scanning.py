@@ -24,7 +24,8 @@ LEXEMES = {
     '//': "COMMENT",
     ' ': "SPACE",
     '\t': "SPACE",
-    '\n': "NEWLINE"
+    '\n': "NEWLINE",
+    '"': "STRING"
 }
 MAX_LEX_LENGTH = max(len(lex) for lex in LEXEMES.keys())
 # list of dicts ; the first dict is the sub-dict of lexemes whose length is the max, the second those whose length is one less, etc.
@@ -67,6 +68,16 @@ def tokenize(source):
                             current = len(source)  # if the comment was on the last line, set current so that the 'while' loop stops
                         line += 1  # don't forget to increment since we passed a newline
                         break  # 'for' loop
+                    case "STRING":  # capture the whole string literal until the closing quotes
+                        end = source.find('"', end) + 1
+                        if end == 0:
+                            errors.append((line, "Unterminated string."))
+                            current = len(source)
+                            break  # 'for' loop
+                        chars = source[current:end]
+                        literal = chars.strip('"')
+                        tokens.append(Token(toktype, chars, literal))
+                        line += literal.count("\n")  # don't forget to increment line with multi-line strings
                     case "SPACE":  # ignore
                         pass
                     case "NEWLINE":  # ignore but note the line increment
