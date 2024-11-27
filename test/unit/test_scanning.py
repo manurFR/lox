@@ -56,5 +56,19 @@ EOF  null
 """.strip().split("\n")
 
 
+def test_tokenize_whitespaces_newlines():
+    tokens, errors = tokenize("( \t )\n   *  .")
+
+    assert len(errors) == 0
+
+    assert _format(tokens) == """
+LEFT_PAREN ( null
+RIGHT_PAREN ) null
+STAR * null
+DOT . null
+EOF  null
+""".strip().split("\n")
+
+
 def _format(tokens):
     return [repr(tok) for tok in tokens]

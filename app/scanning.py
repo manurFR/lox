@@ -21,7 +21,10 @@ LEXEMES = {
     '>': "GREATER",
     '>=': "GREATER_EQUAL",
     '/': "SLASH",
-    '//': "COMMENT"
+    '//': "COMMENT",
+    ' ': "SPACE",
+    '\t': "SPACE",
+    '\n': "NEWLINE"
 }
 MAX_LEX_LENGTH = max(len(lex) for lex in LEXEMES.keys())
 # list of dicts ; the first dict is the sub-dict of lexemes whose length is the max, the second those whose length is one less, etc.
@@ -43,6 +46,7 @@ class Token:
 def tokenize(source):
     tokens, errors = [], []
     current = 0
+    line = 1
     while current < len(source):
         for lexemes in LEXEMES_DESC_LENGTH:
             if len(lexemes) == 0:
@@ -57,16 +61,21 @@ def tokenize(source):
             chars = source[current:end]
             if chars in lexemes:
                 toktype = lexemes[chars]
-                if toktype == "COMMENT":
-                    # ignore the rest of the line
-                    if (current := source.find("\n", end) + 1) == 0:
-                        current = len(source)  # if the comment was on the last line, set current so that the 'while' loop stops
-                    break
-                tokens.append(Token(toktype, chars, None))
+                match toktype:
+                    case "COMMENT":  # set current to ignore the rest of the line
+                        if (current := source.find("\n", end) + 1) == 0:
+                            current = len(source)  # if the comment was on the last line, set current so that the 'while' loop stops
+                        break  # 'for' loop
+                    case "SPACE":  # ignore
+                        pass
+                    case "NEWLINE":  # ignore but note the line increment
+                        line += 1
+                    case _:  # regular token: record it
+                        tokens.append(Token(toktype, chars, None))
                 current = end
-                break
-        else:  # 'for' ended by finding no matching lexeme
-            errors.append((1, f"Unexpected character: {chars}"))
+                break  # 'for' loop
+        else:  # 'for' loop ended by finding no matching lexeme
+            errors.append((line, f"Unexpected character: {chars}"))
             current += 1
     
     tokens.append(Token("EOF", None, None))

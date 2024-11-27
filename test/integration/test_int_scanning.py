@@ -116,3 +116,23 @@ LEFT_PAREN ( null
 RIGHT_PAREN ) null
 EOF  null
 """.strip().split("\n")
+
+
+def test_whitespaces_newlines(run_lox):
+    status, output, stderr = run_lox(command="tokenize", lox_source="""
+# (\t 
+ )
+         $""".strip())  # invalid characters on lines 1 and 3
+
+    assert output.split("\n") == """
+LEFT_PAREN ( null
+RIGHT_PAREN ) null
+EOF  null
+""".strip().split("\n")
+    
+    assert stderr.split("\n") == """
+[line 1] Error: Unexpected character: #
+[line 3] Error: Unexpected character: $
+""".strip().split("\n")
+    
+    assert status == 65
