@@ -103,3 +103,16 @@ GREATER > null
 GREATER_EQUAL >= null
 EOF  null
 """.strip().split("\n")
+
+
+def test_tokenize_comments(run_lox):
+    status, output, _ = run_lox(command="tokenize", lox_source="/()// Comment")
+
+    assert status == 0
+
+    assert output.split("\n") == """
+SLASH / null
+LEFT_PAREN ( null
+RIGHT_PAREN ) null
+EOF  null
+""".strip().split("\n")

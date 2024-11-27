@@ -28,12 +28,13 @@ EOF  null
 
 
 def test_tokenize_two_characters():
-    tokens, _ = tokenize("=!.==!==><=>=<")
+    tokens, _ = tokenize("=!./==!==><=>=<")
 
     assert _format(tokens) == """
 EQUAL = null
 BANG ! null
 DOT . null
+SLASH / null
 EQUAL_EQUAL == null
 BANG_EQUAL != null
 EQUAL = null
@@ -41,6 +42,16 @@ GREATER > null
 LESS_EQUAL <= null
 GREATER_EQUAL >= null
 LESS < null
+EOF  null
+""".strip().split("\n")
+    
+
+def test_tokenize_comments():
+    tokens, _ = tokenize("()// Comment")
+
+    assert _format(tokens) == """
+LEFT_PAREN ( null
+RIGHT_PAREN ) null
 EOF  null
 """.strip().split("\n")
 
