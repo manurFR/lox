@@ -65,6 +65,7 @@ def tokenize(source):
                     case "COMMENT":  # set current to ignore the rest of the line
                         if (current := source.find("\n", end) + 1) == 0:
                             current = len(source)  # if the comment was on the last line, set current so that the 'while' loop stops
+                        line += 1  # don't forget to increment since we passed a newline
                         break  # 'for' loop
                     case "SPACE":  # ignore
                         pass

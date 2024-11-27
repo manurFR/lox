@@ -121,7 +121,7 @@ EOF  null
 def test_whitespaces_newlines(run_lox):
     status, output, stderr = run_lox(command="tokenize", lox_source="""
 # (\t 
- )
+ )  // cool remark
          $""".strip())  # invalid characters on lines 1 and 3
 
     assert output.split("\n") == """

@@ -68,6 +68,32 @@ STAR * null
 DOT . null
 EOF  null
 """.strip().split("\n")
+    
+
+def test_tokenize_comments_should_increment_line_count():
+    tokens, errors = tokenize("""
+()  #\t{}
+@
++++
+-// Let's Go!
+#
+""".strip())
+
+    assert errors == [(1, "Unexpected character: #"),
+                      (2, "Unexpected character: @"),
+                      (5, "Unexpected character: #")]
+
+    assert _format(tokens) == """
+LEFT_PAREN ( null
+RIGHT_PAREN ) null
+LEFT_BRACE { null
+RIGHT_BRACE } null
+PLUS + null
+PLUS + null
+PLUS + null
+MINUS - null
+EOF  null
+""".strip().split("\n")
 
 
 def _format(tokens):
