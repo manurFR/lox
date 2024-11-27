@@ -55,26 +55,24 @@ def tokenize(source):
             if chars in lexemes:
                 toktype = lexemes[chars]
                 match toktype:
-                    case "COMMENT":  # set current to ignore the rest of the line
-                        if (current := source.find("\n", end) + 1) == 0:
-                            current = len(source)  # if the comment was on the last line, set current so that the 'while' loop stops
+                    case "COMMENT":  # ignore the rest of the line
+                        if (end := source.find("\n", end) + 1) == 0:
+                            end = len(source)  # if the comment was on the last line, set end so that the 'while' loop stops
                         line += 1  # don't forget to increment since we passed a newline
-                        break  # 'for' loop
                     case "STRING":  # capture the whole string literal until the closing quotes
-                        end = source.find('"', end) + 1
-                        if end == 0:
-                            errors.append((line, "Unterminated string."))
+                        if (end := source.find('"', end) + 1) == 0:
+                            errors.append((line, "Unterminated string."))  # no closing quotes
                             current = len(source)
                             break  # 'for' loop
                         chars = source[current:end]
                         literal = chars.strip('"')
                         tokens.append(Token(toktype, chars, literal))
-                        line += literal.count("\n")  # don't forget to increment line with multi-line strings
-                    case "DIGIT":  # capture the whole number literal, including optional dot (but not at the end)
+                        line += literal.count("\n")  # don't forget to increment line when faced with multi-line strings
+                    case "NUMBER":  # capture the whole number literal, including optional dot (but not at the end)
                         chars, offset = lookahead_capture(source[current:], valid_chars=string.digits, valid_sep='.')
                         end += offset
                         literal = float(chars)
-                        tokens.append(Token("NUMBER", chars, literal))  # note the toktype=NUMBER, not DIGIT
+                        tokens.append(Token(toktype, chars, literal))
                     case "IDENTIFIER":  # capture the identifier (digits are allowed inside an indentifier, after the first char)
                         chars, offset = lookahead_capture(source[current:], valid_chars=string.ascii_letters +
                                                                                         string.digits + '_')
@@ -86,9 +84,9 @@ def tokenize(source):
                             tokens.append(Token(toktype, chars, None))
                     case "SPACE":  # ignore
                         pass
-                    case "NEWLINE":  # ignore but note the line increment
+                    case "NEWLINE":  # ignore but count the line increment
                         line += 1
-                    case _:  # regular token: record it
+                    case _:  # regular lexeme: record it
                         tokens.append(Token(toktype, chars, None))
                 current = end
                 break  # 'for' loop

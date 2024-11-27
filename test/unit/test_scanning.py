@@ -1,5 +1,5 @@
 import string
-from scanning import tokenize, lookahead_capture
+from scanning import tokenize, lookahead_capture  # type: ignore
 
 """
 $ PYTHONPATH=app pytest -vv -k unit

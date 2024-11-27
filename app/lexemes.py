@@ -28,9 +28,9 @@ LEXEMES = {
     '"': "STRING",
     '_': "IDENTIFIER",
 }
-# add '0': "DIGIT" to '9': "DIGIT"
+# add '0': "NUMBER" to '9': "NUMBER"
 for digit in range(0, 10):
-    LEXEMES[str(digit)] = "DIGIT"
+    LEXEMES[str(digit)] = "NUMBER"
 # add lowercase + uppercase letters as "IDENTIFIER" (underscore was already added above)
 for letter in string.ascii_letters:
     LEXEMES[letter] = "IDENTIFIER"
