@@ -155,6 +155,19 @@ SEMICOLON ; null
 IDENTIFIER _underscore123_ null
 EOF  null
 """.strip().split("\n")
+    
+
+def test_tokenize_reserved_words():
+    tokens, _ = tokenize('orchid or function for fun')
+
+    assert _format(tokens) == """
+IDENTIFIER orchid null
+OR or null
+IDENTIFIER function null
+FOR for null
+FUN fun null
+EOF  null
+""".strip().split("\n")
 
 
 def test_lookahead_capture():

@@ -172,3 +172,36 @@ IDENTIFIER bar null
 IDENTIFIER _hello null
 EOF  null
 """.strip().split("\n")
+    
+
+def test_tokenize_reserved_words(run_lox):
+    status, output, _ = run_lox(command="tokenize", lox_source="""
+var r = 3.14
+if (r * r) >= 4 {
+    print "found!"
+} else return;""".strip())
+
+    assert status == 0
+
+    assert output.split("\n") == """
+VAR var null
+IDENTIFIER r null
+EQUAL = null
+NUMBER 3.14 3.14
+IF if null
+LEFT_PAREN ( null
+IDENTIFIER r null
+STAR * null
+IDENTIFIER r null
+RIGHT_PAREN ) null
+GREATER_EQUAL >= null
+NUMBER 4 4.0
+LEFT_BRACE { null
+PRINT print null
+STRING "found!" found!
+RIGHT_BRACE } null
+ELSE else null
+RETURN return null
+SEMICOLON ; null
+EOF  null
+""".strip().split("\n")

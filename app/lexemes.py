@@ -40,3 +40,22 @@ MAX_LEX_LENGTH = max(len(lex) for lex in LEXEMES.keys())
 LEXEMES_DESC_LENGTH = list(
     reversed([{lex: toktype for lex, toktype in LEXEMES.items() if len(lex) == lexlength} for lexlength in range(1, MAX_LEX_LENGTH + 1)])
 )
+
+RESERVED_WORDS = {
+    'and': "AND",    
+    'or': "OR",
+    'var': "VAR", 
+    'true': "TRUE", 
+    'false': "FALSE", 
+    'if': "IF", 
+    'else': "ELSE", 
+    'fun': "FUN", 
+    'return': "RETURN", 
+    'class': "CLASS", 
+    'this': "THIS", 
+    'super': "SUPER", 
+    'for': "FOR", 
+    'while': "WHILE",
+    'nil': "NIL", 
+    'print': "PRINT", 
+}

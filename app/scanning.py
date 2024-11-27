@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import string
 from typing import Any
 
-from lexemes import LEXEMES_DESC_LENGTH
+from lexemes import LEXEMES_DESC_LENGTH, RESERVED_WORDS
 
 
 @dataclass
@@ -79,7 +79,11 @@ def tokenize(source):
                         chars, offset = lookahead_capture(source[current:], valid_chars=string.ascii_letters +
                                                                                         string.digits + '_')
                         end += offset
-                        tokens.append(Token(toktype, chars, None))
+                        # Reserved words are detected and their toktype is specific (not IDENTIFIER)
+                        if chars in RESERVED_WORDS:
+                            tokens.append(Token(RESERVED_WORDS[chars], chars, None))
+                        else:
+                            tokens.append(Token(toktype, chars, None))
                     case "SPACE":  # ignore
                         pass
                     case "NEWLINE":  # ignore but note the line increment
