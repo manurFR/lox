@@ -159,3 +159,16 @@ EOF  null
 """.strip().split("\n")
     
     assert status == 65
+
+
+def test_tokenize_identifiers(run_lox):
+    status, output, _ = run_lox(command="tokenize", lox_source="foo bar _hello")
+
+    assert status == 0
+
+    assert output.split("\n") == """
+IDENTIFIER foo null
+IDENTIFIER bar null
+IDENTIFIER _hello null
+EOF  null
+""".strip().split("\n")

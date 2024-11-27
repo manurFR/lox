@@ -1,3 +1,6 @@
+import string
+
+
 LEXEMES = {
     '(': "LEFT_PAREN",
     ')': "RIGHT_PAREN",
@@ -22,11 +25,15 @@ LEXEMES = {
     ' ': "SPACE",
     '\t': "SPACE",
     '\n': "NEWLINE",
-    '"': "STRING"
+    '"': "STRING",
+    '_': "IDENTIFIER",
 }
 # add '0': "DIGIT" to '9': "DIGIT"
 for digit in range(0, 10):
     LEXEMES[str(digit)] = "DIGIT"
+# add lowercase + uppercase letters as "IDENTIFIER" (underscore was already added above)
+for letter in string.ascii_letters:
+    LEXEMES[letter] = "IDENTIFIER"
 
 MAX_LEX_LENGTH = max(len(lex) for lex in LEXEMES.keys())
 # list of dicts ; the first dict is the sub-dict of lexemes whose length is the max, the second those whose length is one less, etc.

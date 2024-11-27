@@ -1,4 +1,5 @@
-from scanning import tokenize
+import string
+from scanning import tokenize, lookahead_capture
 
 """
 $ PYTHONPATH=app pytest -vv -k unit
@@ -104,17 +105,6 @@ LEFT_PAREN ( null
 STRING "foo baz" foo baz
 EOF  null
 """.strip().split("\n")
-    
-
-# def test_tokenize_string_literals2():
-#     tokens, _ = tokenize('("hello"\n+')
-
-#     assert _format(tokens) == """
-# LEFT_PAREN ( null
-# STRING "hello" hello
-# PLUS + null
-# EOF  null
-# """.strip().split("\n")
 
 
 def test_tokenize_unterminated_string():
@@ -149,6 +139,31 @@ def test_tokenize_integers():
 NUMBER 12 12.0
 EOF  null
 """.strip().split("\n")
+
+
+def test_tokenize_identifiers():
+    tokens, _ = tokenize('* hello ; "hello" ; big_word ; _underscore123_ ')
+
+    assert _format(tokens) == """
+STAR * null
+IDENTIFIER hello null
+SEMICOLON ; null
+STRING "hello" hello
+SEMICOLON ; null
+IDENTIFIER big_word null
+SEMICOLON ; null
+IDENTIFIER _underscore123_ null
+EOF  null
+""".strip().split("\n")
+
+
+def test_lookahead_capture():
+    assert lookahead_capture(remaining="456>>>", valid_chars=string.digits) == ("456", 2)
+    assert lookahead_capture(remaining="456", valid_chars=string.digits) == ("456", 2)
+    assert lookahead_capture(remaining="4.56<<<", valid_chars=string.digits, valid_sep='.') == ("4.56", 3)
+    assert lookahead_capture(remaining="4.56", valid_chars=string.digits, valid_sep='.') == ("4.56", 3)
+    assert lookahead_capture(remaining="45.#", valid_chars=string.digits, valid_sep='.') == ("45", 1)
+    assert lookahead_capture(remaining="45.", valid_chars=string.digits, valid_sep='.') == ("45", 1)
 
 
 def _format(tokens):

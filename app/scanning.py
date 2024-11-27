@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import string
 from typing import Any
 
 from lexemes import LEXEMES_DESC_LENGTH
@@ -13,6 +14,26 @@ class Token:
     def __repr__(self) -> str:
         """The formatted output for this token"""
         return f"{self.toktype} {self.lexeme if self.lexeme else ''} {self.literal if self.literal is not None else 'null'}"
+
+
+def lookahead_capture(remaining, valid_chars, valid_sep=None):
+    """Capture a whole token one character at a time, until the next character is detected as not valid.
+    If a valid_sep is given, such a character is valid only if the character after it is also valid
+    (example: '12.3' is captured as '12.3' but '12.' is captured as '12' and the dot is excluded from the capture).
+    Returns a tuple (captured string, index of the last captured character)."""
+    next_char = 1
+    while True:
+        try:
+            lookahead = remaining[next_char]
+            if lookahead in valid_chars:
+                next_char += 1
+            elif valid_sep and lookahead == valid_sep and remaining[next_char + 1] in valid_chars:
+                next_char += 1
+            else:
+                break  # the next character is not valid: we've reached the end of the capture
+        except IndexError:
+            break  # we've reached the end of source, and thus the capture stops here
+    return remaining[:next_char], next_char - 1
 
 
 def tokenize(source):
@@ -50,21 +71,15 @@ def tokenize(source):
                         tokens.append(Token(toktype, chars, literal))
                         line += literal.count("\n")  # don't forget to increment line with multi-line strings
                     case "DIGIT":  # capture the whole number literal, including optional dot (but not at the end)
-                        while True:
-                            if end > len(source) - 1:
-                                break  # we've reached the end of source, and thus the end of the number
-                            else:
-                                lookahead = source[end]
-                                if lexemes.get(lookahead, "?") == "DIGIT":
-                                    end += 1
-                                elif lookahead == '.' and lexemes.get(source[end + 1], "?") == "DIGIT":
-                                    end += 1
-                                else:
-                                    break  # the next character is not a digit or a dot: we've reached the end of the number
-                        # we've reached the end of the number (or of the source)
-                        chars = source[current:end]
+                        chars, offset = lookahead_capture(source[current:], valid_chars=string.digits, valid_sep='.')
+                        end += offset
                         literal = float(chars)
-                        tokens.append(Token("NUMBER", chars, literal))
+                        tokens.append(Token("NUMBER", chars, literal))  # note the toktype=NUMBER, not DIGIT
+                    case "IDENTIFIER":  # capture the identifier (digits are allowed inside an indentifier, after the first char)
+                        chars, offset = lookahead_capture(source[current:], valid_chars=string.ascii_letters +
+                                                                                        string.digits + '_')
+                        end += offset
+                        tokens.append(Token(toktype, chars, None))
                     case "SPACE":  # ignore
                         pass
                     case "NEWLINE":  # ignore but note the line increment
