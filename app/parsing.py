@@ -46,7 +46,7 @@ class Parser:
         if self.match("NIL"):
             return Literal(None)
         
-        if self.match("NUMBER"):
+        if self.match(["NUMBER", "STRING"]):
             return Literal(self.previous_literal())
 
     # ## UTILITIES ##

@@ -10,3 +10,6 @@ def test_parse_literals(run_lox):
 
     _, output, _ = run_lox(command="parse", lox_source="12.34")
     assert output == "12.34"
+
+    _, output, _ = run_lox(command="parse", lox_source='"hello"')
+    assert output == "hello"
