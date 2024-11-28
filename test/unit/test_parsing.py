@@ -1,6 +1,6 @@
 import pytest
 import re
-from parsing import Literal, Grouping, Parser, ParserError  # type: ignore
+from parsing import Unary, Literal, Grouping, Parser, ParserError  # type: ignore
 from scanning import Token  # type: ignore
 
 
@@ -38,6 +38,17 @@ def test_Grouping_repr():
     assert repr(Grouping(Literal(False))) == "(group false)"
 
 
+def test_Unary_repr():
+    assert repr(Unary("-", Literal(5.5))) == "(- 5.5)"
+    assert repr(Unary("!", Literal(False))) == "(! false)"
+
+
+def test_Parser_unary():
+    assert Parser(_text2tokens("""MINUS - null
+                                  NUMBER "12" 12.0""")).unary() == Unary("-", Literal(12.0))
+    assert Parser(_text2tokens("""STRING "test" test""")).unary() == Literal("test")
+
+
 def test_Parser_primary():
     p = Parser(TOKENS)
     assert p.primary() == Literal(2.0)
@@ -68,13 +79,13 @@ def test_Parser_peek():
     assert p.peek() == "STAR"
 
 
-def test_Parser_previous_literal():
+def test_Parser_previous_token():
     p = Parser(TOKENS)
     p.advance()
     p.advance()
-    assert p.peek() == "NUMBER"
     p.advance()
-    assert p.previous_literal() == 3.14
+    assert p.previous_token().toktype == "NUMBER"
+    assert p.previous_token().literal == 3.14
 
 
 def test_Parser_is_at_end():

@@ -1,5 +1,14 @@
 from dataclasses import dataclass
-from typing import Any
+from tokenize import Token
+from typing import Any, Type
+
+@dataclass
+class Unary:
+    operator: str
+    right: Any  # expr
+
+    def __repr__(self) -> str:
+        return f"({self.operator} {self.right})"
 
 
 @dataclass
@@ -24,7 +33,6 @@ class Parser:
     def __init__(self, tokens):
         self.rawtokens = tokens
         self.tokens = [t.toktype for t in tokens]
-        self.literals = [t.literal for t in tokens]
         self.current = 0
 
     # ## GRAMMAR ##
@@ -56,6 +64,14 @@ class Parser:
         return self.unary()
     
     def unary(self):
+        """
+        unary          → ( "!" | "-" ) unary
+                        | primary ;
+        """
+        if self.match(["BANG", "MINUS"]):
+            operator = self.previous_token().lexeme  # '!' or '-' character
+            right = self.unary()
+            return Unary(operator, right)
         return self.primary()
     
     def primary(self):
@@ -71,15 +87,14 @@ class Parser:
             return Literal(None)
         
         if self.match(["NUMBER", "STRING"]):
-            return Literal(self.previous_literal())
+            return Literal(self.previous_token().literal)
         
         if self.match("LEFT_PAREN"):
-            currtok = self.rawtokens[self.current - 1]
+            currtok = self.previous_token()
             content = self.expression()  # "recursively" parse the content of the parentheses
             if not self.match("RIGHT_PAREN"):
                 raise ParserError(currtok, "Expected ')' after expression.")
             return Grouping(content)
-
 
     # ## UTILITIES ##
 
@@ -87,9 +102,9 @@ class Parser:
         assert 0 <= self.current < len(self.tokens)
         return self.tokens[self.current]
     
-    def previous_literal(self):
+    def previous_token(self):
         assert 1 <= self.current <= len(self.tokens)
-        return self.literals[self.current - 1]
+        return self.rawtokens[self.current - 1]
     
     def advance(self):
         if not self.is_at_end():
@@ -110,6 +125,3 @@ class Parser:
 
 class ParserError(Exception):
     pass
-    # def __init__(self, token, message):
-    #     self.token = token
-    #     super().__init__(message)
