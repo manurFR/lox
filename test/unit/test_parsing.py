@@ -3,7 +3,7 @@ from scanning import Token  # type: ignore
 
 TOKENS = [Token("NUMBER", "2", 2.0), 
           Token("STAR", "*", None), 
-          Token("NUMBER", "3", 3.0),
+          Token("NUMBER", "3.14", 3.14),
           Token("EOF", "", None)]
 LAST = len(TOKENS) - 1
 
@@ -21,6 +21,15 @@ def test_Parser_peek():
     assert p.peek() == "NUMBER"
     p.current = 1
     assert p.peek() == "STAR"
+
+
+def test_Parser_previous_literal():
+    p = Parser(TOKENS)
+    p.advance()
+    p.advance()
+    assert p.peek() == "NUMBER"
+    p.advance()
+    assert p.previous_literal() == 3.14
 
 
 def test_Parser_is_at_end():
