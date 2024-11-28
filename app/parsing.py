@@ -22,6 +22,7 @@ class Grouping:
 
 class Parser:
     def __init__(self, tokens):
+        self.rawtokens = tokens
         self.tokens = [t.toktype for t in tokens]
         self.literals = [t.literal for t in tokens]
         self.current = 0
@@ -73,9 +74,10 @@ class Parser:
             return Literal(self.previous_literal())
         
         if self.match("LEFT_PAREN"):
-            content = self.expression()  # recursively parse the content of the parentheses
+            currtok = self.rawtokens[self.current - 1]
+            content = self.expression()  # "recursively" parse the content of the parentheses
             if not self.match("RIGHT_PAREN"):
-                raise ParserError(self.peek(), "Expected ')' after expression.")
+                raise ParserError(currtok, "Expected ')' after expression.")
             return Grouping(content)
 
 
@@ -107,6 +109,7 @@ class Parser:
 
 
 class ParserError(Exception):
-    def __init__(self, token, message):
-        self.token = token
-        super().__init__(message)
+    pass
+    # def __init__(self, token, message):
+    #     self.token = token
+    #     super().__init__(message)

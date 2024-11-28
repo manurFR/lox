@@ -1,5 +1,6 @@
+import pytest
 import re
-from parsing import Literal, Grouping, Parser  # type: ignore
+from parsing import Literal, Grouping, Parser, ParserError  # type: ignore
 from scanning import Token  # type: ignore
 
 
@@ -12,6 +13,7 @@ def _text2tokens(text):
             if toktype == "NUMBER":
                 literal = float(literal)
             tokens.append(Token(toktype, lexeme, literal))
+    tokens.append(Token("EOF", "", None))
     return tokens
 
 
@@ -19,7 +21,6 @@ TOKENS = _text2tokens("""
                       NUMBER "2" 2.0
                       STAR * null
                       NUMBER "3.14" 3.14
-                      EOF  null
                       """)
 LAST = len(TOKENS) - 1
 
@@ -49,6 +50,15 @@ def test_Parser_primary():
                                       NUMBER "3.14" 3.14
                                       RIGHT_PAREN ) null""")
     assert Parser(grouping_tokens).primary() == Grouping(Literal(3.14))
+
+
+def test_Parser_primary_with_unterminated_parentheses():
+    p = Parser(_text2tokens("""LEFT_PAREN ( null
+                               STRING "fail" fail"""))
+    with pytest.raises(ParserError) as ex:
+        p.primary()
+        assert False  # we should never arrive here
+    assert ex.value.args[1] == "Expected ')' after expression."
 
 
 def test_Parser_peek():
