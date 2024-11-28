@@ -13,3 +13,6 @@ def test_parse_literals(run_lox):
 
     _, output, _ = run_lox(command="parse", lox_source='"hello"')
     assert output == "hello"
+
+    _, output, _ = run_lox(command="parse", lox_source='("foo")')
+    assert output == "(group foo)"

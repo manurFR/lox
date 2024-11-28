@@ -1,10 +1,26 @@
-from parsing import Literal, Parser  # type: ignore
+import re
+from parsing import Literal, Grouping, Parser  # type: ignore
 from scanning import Token  # type: ignore
 
-TOKENS = [Token("NUMBER", "2", 2.0), 
-          Token("STAR", "*", None), 
-          Token("NUMBER", "3.14", 3.14),
-          Token("EOF", "", None)]
+
+def _text2tokens(text):
+    p = re.compile(r'(\w+) (".*"|.*) (null|.+)')
+    tokens = []
+    for line in text.strip().split("\n"):
+        if (match := p.match(line.strip())):
+            toktype, lexeme, literal = match.groups()
+            if toktype == "NUMBER":
+                literal = float(literal)
+            tokens.append(Token(toktype, lexeme, literal))
+    return tokens
+
+
+TOKENS = _text2tokens("""
+                      NUMBER "2" 2.0
+                      STAR * null
+                      NUMBER "3.14" 3.14
+                      EOF  null
+                      """)
 LAST = len(TOKENS) - 1
 
 
@@ -14,6 +30,25 @@ def test_Literal_repr():
     assert repr(Literal(None)) == "nil"
     assert repr(Literal("test")) == "test"
     assert repr(Literal(12.34)) == "12.34"
+
+
+def test_Grouping_repr():
+    assert repr(Grouping(Literal(5.5))) == "(group 5.5)"
+    assert repr(Grouping(Literal(False))) == "(group false)"
+
+
+def test_Parser_primary():
+    p = Parser(TOKENS)
+    assert p.primary() == Literal(2.0)
+    assert Parser([Token("FALSE", "false", None)]).primary() == Literal(False)
+    assert Parser([Token("TRUE", "true", None)]).primary() == Literal(True)
+    assert Parser([Token("NIL", "nil", None)]).primary() == Literal(None)
+    assert Parser([Token("STRING", '"test"', "test")]).primary() == Literal("test")
+
+    grouping_tokens = _text2tokens("""LEFT_PAREN ( null
+                                      NUMBER "3.14" 3.14
+                                      RIGHT_PAREN ) null""")
+    assert Parser(grouping_tokens).primary() == Grouping(Literal(3.14))
 
 
 def test_Parser_peek():

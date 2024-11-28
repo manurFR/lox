@@ -10,6 +10,14 @@ class Literal:
         if self.value is None:
             return "nil"
         return str(self.value).lower()
+    
+
+@dataclass
+class Grouping:
+    expr: Any
+
+    def __repr__(self) -> str:
+        return f"(group {self.expr})"
 
 
 class Parser:
@@ -19,6 +27,17 @@ class Parser:
         self.current = 0
 
     # ## GRAMMAR ##
+    """
+    expression     → equality ;
+    equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+    comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+    term           → factor ( ( "-" | "+" ) factor )* ;
+    factor         → unary ( ( "/" | "*" ) unary )* ;
+    unary          → ( "!" | "-" ) unary
+                    | primary ;
+    primary        → NUMBER | STRING | "true" | "false" | "nil"
+                    | "(" expression ")" ;
+    """
 
     def expression(self):
         return self.equality()
@@ -39,6 +58,10 @@ class Parser:
         return self.primary()
     
     def primary(self):
+        """
+        primary        → NUMBER | STRING | "true" | "false" | "nil"
+                        | "(" expression ")" ;
+        """
         if self.match("FALSE"):
             return Literal(False)
         if self.match("TRUE"):
@@ -48,6 +71,13 @@ class Parser:
         
         if self.match(["NUMBER", "STRING"]):
             return Literal(self.previous_literal())
+        
+        if self.match("LEFT_PAREN"):
+            content = self.expression()  # recursively parse the content of the parentheses
+            if not self.match("RIGHT_PAREN"):
+                raise ParserError(self.peek(), "Expected ')' after expression.")
+            return Grouping(content)
+
 
     # ## UTILITIES ##
 
@@ -74,3 +104,9 @@ class Parser:
             self.advance()
             return True
         return False
+
+
+class ParserError(Exception):
+    def __init__(self, token, message):
+        self.token = token
+        super().__init__(message)
