@@ -1,6 +1,6 @@
 import pytest
 import re
-from parsing import Unary, Literal, Grouping, Parser, ParserError  # type: ignore
+from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError  # type: ignore
 from scanning import Token  # type: ignore
 
 
@@ -25,22 +25,10 @@ TOKENS = _text2tokens("""
 LAST = len(TOKENS) - 1
 
 
-def test_Literal_repr():
-    assert repr(Literal(True)) == "true"
-    assert repr(Literal(False)) == "false"
-    assert repr(Literal(None)) == "nil"
-    assert repr(Literal("test")) == "test"
-    assert repr(Literal(12.34)) == "12.34"
-
-
-def test_Grouping_repr():
-    assert repr(Grouping(Literal(5.5))) == "(group 5.5)"
-    assert repr(Grouping(Literal(False))) == "(group false)"
-
-
-def test_Unary_repr():
-    assert repr(Unary("-", Literal(5.5))) == "(- 5.5)"
-    assert repr(Unary("!", Literal(False))) == "(! false)"
+def test_Parser_factor():
+    assert Parser(_text2tokens("""NUMBER "12" 12.0
+                                  SLASH / null
+                                  NUMBER "2.5" 2.5""")).factor() == Binary(Literal(12.0), "/", Literal(2.5))
 
 
 def test_Parser_unary():

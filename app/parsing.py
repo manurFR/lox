@@ -1,32 +1,4 @@
-from dataclasses import dataclass
-from tokenize import Token
-from typing import Any, Type
-
-@dataclass
-class Unary:
-    operator: str
-    right: Any  # expr
-
-    def __repr__(self) -> str:
-        return f"({self.operator} {self.right})"
-
-
-@dataclass
-class Literal:
-    value: Any
-
-    def __repr__(self) -> str:
-        if self.value is None:
-            return "nil"
-        return str(self.value).lower()
-    
-
-@dataclass
-class Grouping:
-    expr: Any
-
-    def __repr__(self) -> str:
-        return f"(group {self.expr})"
+from syntax import Binary, Grouping, Literal, Unary
 
 
 class Parser:
@@ -61,7 +33,15 @@ class Parser:
         return self.factor()
     
     def factor(self):
-        return self.unary()
+        """ factor         → unary ( ( "/" | "*" ) unary )* ; """
+        expr = self.unary()
+
+        while self.match(["STAR", "SLASH"]):
+            operator = self.previous_token().lexeme  # '*' or '/' character
+            right = self.unary()
+            expr = Binary(expr, operator, right)
+
+        return expr
     
     def unary(self):
         """
