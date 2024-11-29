@@ -30,7 +30,15 @@ class Parser:
         return self.term()
     
     def term(self):
-        return self.factor()
+        """ term           → factor ( ( "-" | "+" ) factor )* ; """
+        expr = self.factor()
+
+        while self.match(["PLUS", "MINUS"]):
+            operator = self.previous_token().lexeme  # '+' or '-' character
+            right = self.factor()
+            expr = Binary(expr, operator, right)
+
+        return expr
     
     def factor(self):
         """ factor         → unary ( ( "/" | "*" ) unary )* ; """
