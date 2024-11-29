@@ -25,6 +25,12 @@ TOKENS = _text2tokens("""
 LAST = len(TOKENS) - 1
 
 
+def test_Parser_equality():
+    assert Parser(_text2tokens("""STRING "yes" yes
+                                  BANG_EQUAL != null
+                                  STRING "ok" ok""")).equality() == Binary(Literal("yes"), "!=", Literal("ok"))
+
+
 def test_Parser_comparison():
     assert Parser(_text2tokens("""NUMBER "12" 12.0
                                   LESS_EQUAL <= null

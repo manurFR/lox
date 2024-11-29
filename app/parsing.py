@@ -24,7 +24,16 @@ class Parser:
         return self.equality()
     
     def equality(self):
-        return self.comparison()
+        """ equality       → comparison ( ( "!=" | "==" ) comparison )* ; """
+        expr = self.comparison()
+
+        while self.match(["EQUAL_EQUAL", "BANG_EQUAL"]):
+            operator = self.previous_token().lexeme  # '!=' or '==' characters
+            right = self.factor()
+            expr = Binary(expr, operator, right)
+
+        return expr
+    
     
     def comparison(self):
         """ comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ; """
