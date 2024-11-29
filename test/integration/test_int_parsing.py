@@ -32,3 +32,8 @@ def test_parse_arithmetic_operators(run_lox):
 
     _, output, _ = run_lox(command="parse", lox_source='-52 + 80 + 7.7 - 94')
     assert output == "(- (+ (+ (- 52.0) 80.0) 7.7) 94.0)"
+
+
+def test_parse_comparison_operators(run_lox):
+    _, output, _ = run_lox(command="parse", lox_source="83 < 99 <= 115")
+    assert output == "(<= (< 83.0 99.0) 115.0)"

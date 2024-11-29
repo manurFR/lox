@@ -25,6 +25,12 @@ TOKENS = _text2tokens("""
 LAST = len(TOKENS) - 1
 
 
+def test_Parser_comparison():
+    assert Parser(_text2tokens("""NUMBER "12" 12.0
+                                  LESS_EQUAL <= null
+                                  NUMBER "33.3" 33.3""")).comparison() == Binary(Literal(12.0), "<=", Literal(33.3))
+    
+
 def test_Parser_term():
     assert Parser(_text2tokens("""NUMBER "12" 12.0
                                   PLUS + null

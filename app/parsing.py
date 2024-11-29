@@ -27,7 +27,16 @@ class Parser:
         return self.comparison()
     
     def comparison(self):
-        return self.term()
+        """ comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ; """
+        expr = self.term()
+
+        while self.match(["GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL"]):
+            operator = self.previous_token().lexeme  # '>' / '>=' / '<' / '<=' character(s)
+            right = self.factor()
+            expr = Binary(expr, operator, right)
+
+        return expr
+
     
     def term(self):
         """ term           → factor ( ( "-" | "+" ) factor )* ; """
