@@ -1,8 +1,5 @@
 import sys
 
-import pprint
-pprint.pprint(sys.path)
-
 from errors import Errors
 from scanning import tokenize
 from parsing import Parser
