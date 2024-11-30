@@ -1,4 +1,4 @@
-from errors import Errors
+from app.errors import Errors
 from lexemes import STATEMENTS
 from syntax import NodeExpr, Binary, Grouping, Literal, Unary
 
