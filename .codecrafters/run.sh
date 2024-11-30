@@ -7,5 +7,5 @@
 # Learn more: https://codecrafters.io/program-interface
 
 cd app
-pwd
+
 PYTHONPATH=. pipenv run python3 -m main "$@"

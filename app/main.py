@@ -1,5 +1,8 @@
 import sys
 
+import pprint
+pprint.pprint(sys.path)
+
 from errors import Errors
 from scanning import tokenize
 from parsing import Parser
@@ -10,6 +13,7 @@ AVAILABLE_COMMANDS = ['tokenize', 'parse']
 def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     # print("Logs from your program will appear here!", file=sys.stderr)
+
 
     if len(sys.argv) < 3:
         print("Usage: ./your_program.sh {tokenize|parse} <filename>", file=sys.stderr)
