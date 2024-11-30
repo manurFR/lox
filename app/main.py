@@ -1,8 +1,8 @@
 import sys
 
 from errors import Errors
-from app.scanning import tokenize
-from app.parsing import Parser
+from scanning import tokenize
+from parsing import Parser
 
 AVAILABLE_COMMANDS = ['tokenize', 'parse']
 

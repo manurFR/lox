@@ -6,4 +6,4 @@
 #
 # Learn more: https://codecrafters.io/program-interface
 
-PYTHONPATH=app pipenv run python3 -m app.main "$@"
+PYTHONPATH=app pipenv run python3 -m main "$@"
