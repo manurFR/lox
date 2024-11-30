@@ -12,8 +12,8 @@ def _text2tokens(text):
             toktype, lexeme, literal = match.groups()
             if toktype == "NUMBER":
                 literal = float(literal)
-            tokens.append(Token(toktype, lexeme, literal))
-    tokens.append(Token("EOF", "", None))
+            tokens.append(Token(toktype, lexeme, literal, 1))
+    tokens.append(Token("EOF", "", None, 2))
     return tokens
 
 
@@ -58,10 +58,10 @@ def test_Parser_unary():
 def test_Parser_primary():
     p = Parser(TOKENS)
     assert p.primary() == Literal(2.0)
-    assert Parser([Token("FALSE", "false", None)]).primary() == Literal(False)
-    assert Parser([Token("TRUE", "true", None)]).primary() == Literal(True)
-    assert Parser([Token("NIL", "nil", None)]).primary() == Literal(None)
-    assert Parser([Token("STRING", '"test"', "test")]).primary() == Literal("test")
+    assert Parser([Token("FALSE", "false", None, 1)]).primary() == Literal(False)
+    assert Parser([Token("TRUE", "true", None, 1)]).primary() == Literal(True)
+    assert Parser([Token("NIL", "nil", None, 1)]).primary() == Literal(None)
+    assert Parser([Token("STRING", '"test"', "test", 1)]).primary() == Literal("test")
 
     grouping_tokens = _text2tokens("""LEFT_PAREN ( null
                                       NUMBER "3.14" 3.14
@@ -75,14 +75,14 @@ def test_Parser_primary_with_unterminated_parentheses():
     with pytest.raises(ParserError) as ex:
         p.primary()
         assert False  # we should never arrive here
-    assert ex.value.args[1] == "Expected ')' after expression."
+    assert ex.value.args[0] == (1, "Expected ')' after expression.", " at '('")
 
 
 def test_Parser_peek():
     p = Parser(TOKENS)
-    assert p.peek() == "NUMBER"
+    assert p.peek().toktype == "NUMBER"
     p.current = 1
-    assert p.peek() == "STAR"
+    assert p.peek().toktype == "STAR"
 
 
 def test_Parser_previous_token():
@@ -117,3 +117,29 @@ def test_Parser_match():
     # even though the last token is EOF, a match on it always returns False
     p.current = LAST
     assert p.match("EOF") is False
+
+
+def test_Parser_synchronize_post_error_with_semicolon():
+    p = Parser(_text2tokens("""LEFT_PAREN ( null
+                               STRING "fail" fail
+                               SEMICOLON ; null
+                               NUMBER 8 8.0"""))
+    p.synchronize_post_error()
+    assert p.match("NUMBER")
+
+
+def test_Parser_synchronize_post_error_with_statement():
+    p = Parser(_text2tokens("""LEFT_PAREN ( null
+                               STRING "fail" fail
+                               RETURN return null
+                               NUMBER 8 8.0"""))
+    p.synchronize_post_error()
+    assert p.match("RETURN")
+
+
+def test_Parser_synchronize_post_error_until_EOF():
+    p = Parser(_text2tokens("""LEFT_PAREN ( null
+                               STRING "fail" fail
+                               NUMBER 8 8.0"""))
+    p.synchronize_post_error()
+    assert p.peek().toktype == "EOF"

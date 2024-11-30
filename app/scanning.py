@@ -10,6 +10,7 @@ class Token:
     toktype: str
     lexeme: str | None
     literal: Any
+    line: int
 
     def __repr__(self) -> str:
         """The formatted output for this token"""
@@ -66,34 +67,34 @@ def tokenize(source):
                             break  # 'for' loop
                         chars = source[current:end]
                         literal = chars.strip('"')
-                        tokens.append(Token(toktype, chars, literal))
+                        tokens.append(Token(toktype, chars, literal, line))
                         line += literal.count("\n")  # don't forget to increment line when faced with multi-line strings
                     case "NUMBER":  # capture the whole number literal, including optional dot (but not at the end)
                         chars, offset = lookahead_capture(source[current:], valid_chars=string.digits, valid_sep='.')
                         end += offset
                         literal = float(chars)
-                        tokens.append(Token(toktype, chars, literal))
+                        tokens.append(Token(toktype, chars, literal, line))
                     case "IDENTIFIER":  # capture the identifier (digits are allowed inside an indentifier, after the first char)
                         chars, offset = lookahead_capture(source[current:], valid_chars=string.ascii_letters +
                                                                                         string.digits + '_')
                         end += offset
                         # Reserved words are detected and their toktype is specific (not IDENTIFIER)
                         if chars in RESERVED_WORDS:
-                            tokens.append(Token(RESERVED_WORDS[chars], chars, None))
+                            tokens.append(Token(RESERVED_WORDS[chars], chars, None, line))
                         else:
-                            tokens.append(Token(toktype, chars, None))
+                            tokens.append(Token(toktype, chars, None, line))
                     case "SPACE":  # ignore
                         pass
                     case "NEWLINE":  # ignore but count the line increment
                         line += 1
                     case _:  # regular lexeme: record it
-                        tokens.append(Token(toktype, chars, None))
+                        tokens.append(Token(toktype, chars, None, line))
                 current = end
                 break  # 'for' loop
         else:  # 'for' loop ended by finding no matching lexeme
             errors.append((line, f"Unexpected character: {chars}"))
             current += 1
     
-    tokens.append(Token("EOF", None, None))
+    tokens.append(Token("EOF", None, None, line))
 
     return tokens, errors

@@ -41,21 +41,22 @@ LEXEMES_DESC_LENGTH = list(
     reversed([{lex: toktype for lex, toktype in LEXEMES.items() if len(lex) == lexlength} for lexlength in range(1, MAX_LEX_LENGTH + 1)])
 )
 
-RESERVED_WORDS = {
+STATEMENTS = ["class",
+              "fun",
+              "var",
+              "for",
+              "if",
+              "while",
+              "print",
+              "return"]
+
+RESERVED_WORDS = {stmt: stmt.upper() for stmt in STATEMENTS} | {
     'and': "AND",    
     'or': "OR",
-    'var': "VAR", 
     'true': "TRUE", 
     'false': "FALSE", 
-    'if': "IF", 
     'else': "ELSE", 
-    'fun': "FUN", 
-    'return': "RETURN", 
-    'class': "CLASS", 
     'this': "THIS", 
     'super': "SUPER", 
-    'for': "FOR", 
-    'while': "WHILE",
     'nil': "NIL", 
-    'print': "PRINT", 
 }

@@ -42,3 +42,25 @@ def test_parse_comparison_operators(run_lox):
 def test_parse_equality_operators(run_lox):
     _, output, _ = run_lox(command="parse", lox_source='"baz" == "baz"')
     assert output == "(== baz baz)"
+
+
+def test_parse_unterminated_parentheses(run_lox):
+    status, output, stderr = run_lox(command="parse", lox_source="(12")
+    assert output == 'None'
+
+    assert status == 65
+
+    assert stderr.split("\n") == """
+[line 1] Error at '(': Expected ')' after expression.
+""".strip().split("\n")
+
+
+def test_parse_empty(run_lox):
+    status, output, stderr = run_lox(command="parse", lox_source="")
+    assert output == 'None'
+
+    assert status == 65
+
+    assert stderr.split("\n") == """
+[line 1] Error at end: Expected expression.
+""".strip().split("\n")

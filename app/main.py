@@ -1,5 +1,6 @@
 import sys
 
+from errors import Errors
 from app.scanning import tokenize
 from app.parsing import Parser
 
@@ -24,30 +25,34 @@ def main():
     with open(filename) as file:
         file_contents = file.read()
 
-    tokens, errors = tokenize(file_contents)
-
     match command:
         case "tokenize":
-            print_errors(errors)
+            tokens = do_tokenize(file_contents)
             for tok in tokens:
                 print(tok)
-            if errors:
-                sys.exit(65)
-        
+                
         case "parse":
-            if errors:
-                print("Errors found in scanning phase. Aborting.")
-                print_errors(errors)
-                sys.exit(65)
-            
-            parser = Parser(tokens)
-            expression = parser.expression()
-            print(expression)
+            tokens = do_tokenize(file_contents)
+            if Errors.had_errors:
+                print("Errors found in scanning phase. Aborting.", file=sys.stderr)
+            else:
+                ast_root = do_parse(tokens)
+                print(ast_root)
+
+    if Errors.had_errors:
+        sys.exit(65)
 
 
-def print_errors(errors):
-    for line, message in errors:
-        print(f"[line {line}] Error: {message}", file=sys.stderr)
+def do_tokenize(content):
+    tokens, errs = tokenize(content)
+    for line, message in errs:
+        Errors.report(line, message)
+    return tokens
+
+
+def do_parse(tokens):
+    parser = Parser(tokens)
+    return parser.parse()
 
 
 if __name__ == "__main__":

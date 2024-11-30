@@ -1,11 +1,19 @@
-from syntax import Binary, Grouping, Literal, Unary
+from errors import Errors
+from lexemes import STATEMENTS
+from syntax import NodeExpr, Binary, Grouping, Literal, Unary
 
 
 class Parser:
     def __init__(self, tokens):
-        self.rawtokens = tokens
-        self.tokens = [t.toktype for t in tokens]
+        self.tokens = tokens
+        # self.tokens = [t.toktype for t in tokens]
         self.current = 0
+
+    def parse(self) -> NodeExpr | None:
+        try:
+            return self.expression()
+        except ParserError as pex:
+            Errors.report(*pex.args[0])
 
     # ## GRAMMAR ##
     """
@@ -96,11 +104,14 @@ class Parser:
             return Literal(self.previous_token().literal)
         
         if self.match("LEFT_PAREN"):
-            currtok = self.previous_token()
+            currtok = self.previous_token()  # the '(' token
             content = self.expression()  # "recursively" parse the content of the parentheses
             if not self.match("RIGHT_PAREN"):
-                raise ParserError(currtok, "Expected ')' after expression.")
+                raise self.error(currtok, "Expected ')' after expression.")
             return Grouping(content)
+        
+        # Nothing matched
+        raise self.error(self.peek(), "Expected expression.")
 
     # ## UTILITIES ##
 
@@ -110,23 +121,42 @@ class Parser:
     
     def previous_token(self):
         assert 1 <= self.current <= len(self.tokens)
-        return self.rawtokens[self.current - 1]
+        return self.tokens[self.current - 1]
     
     def advance(self):
         if not self.is_at_end():
             self.current += 1
     
     def is_at_end(self):
-        return self.peek() == "EOF"
+        return self.peek().toktype == "EOF"
 
     def match(self, toktypes: str | list[str]):
         """Beware: if match() returns True, it increments self.current !"""
         if isinstance(toktypes, str):
             toktypes = [toktypes]
-        if not self.is_at_end() and self.peek() in toktypes:
+        if not self.is_at_end() and self.peek().toktype in toktypes:
             self.advance()
             return True
         return False
+    
+    def error(self, token, message):
+        if token.toktype == "EOF":
+            return ParserError((token.line, message, " at end"))
+        else:
+            return ParserError((token.line, message, f" at '{token.lexeme}'"))
+        
+    def synchronize_post_error(self):
+        """Discard tokens after an error was found, until it founds a statement boundary,
+           ie. a semicolon ';' or a statement, then return so that the parsing starts back at this place.
+           If it encounters the end of the tokens, so be it, there is nothing to meaningfully parse 
+           after the error..."""
+        while not self.is_at_end():
+            self.advance()
+            if self.peek().toktype == "SEMICOLON":
+                self.advance()
+                return
+            elif self.peek().lexeme in STATEMENTS:
+                return
 
 
 class ParserError(Exception):
