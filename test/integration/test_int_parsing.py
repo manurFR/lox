@@ -46,7 +46,7 @@ def test_parse_equality_operators(run_lox):
 
 def test_parse_unterminated_parentheses(run_lox):
     status, output, stderr = run_lox(command="parse", lox_source="(12")
-    assert output == 'None'
+    assert output == ""
 
     assert status == 65
 
@@ -57,7 +57,7 @@ def test_parse_unterminated_parentheses(run_lox):
 
 def test_parse_empty(run_lox):
     status, output, stderr = run_lox(command="parse", lox_source="")
-    assert output == 'None'
+    assert output == ""
 
     assert status == 65
 

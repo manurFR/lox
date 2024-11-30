@@ -9,11 +9,12 @@ class Parser:
         # self.tokens = [t.toktype for t in tokens]
         self.current = 0
 
-    def parse(self) -> NodeExpr | None:
+    def parse(self) -> NodeExpr | str:
         try:
             return self.expression()
         except ParserError as pex:
             Errors.report(*pex.args[0])
+            return ""
 
     # ## GRAMMAR ##
     """
