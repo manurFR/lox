@@ -3,8 +3,9 @@ import sys
 from errors import Errors
 from scanning import tokenize
 from parsing import Parser
+from evaluating import evaluate
 
-AVAILABLE_COMMANDS = ['tokenize', 'parse']
+AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate']
 
 
 def main():
@@ -31,17 +32,23 @@ def main():
             tokens = do_tokenize(file_contents)
             for tok in tokens:
                 print(tok)
+            check_errors()
                 
         case "parse":
             tokens = do_tokenize(file_contents)
-            if Errors.had_errors:
-                print("Errors found in scanning phase. Aborting.", file=sys.stderr)
-            else:
-                ast_root = do_parse(tokens)
-                print(ast_root)
+            check_errors()
+            ast_root = do_parse(tokens)
+            print(ast_root)
+            check_errors()
 
-    if Errors.had_errors:
-        sys.exit(65)
+        case "evaluate":
+            tokens = do_tokenize(file_contents)
+            check_errors()
+            ast_root = do_parse(tokens)
+            check_errors()
+            output = do_evaluation(ast_root)
+            print(output)
+
 
 
 def do_tokenize(content):
@@ -54,6 +61,16 @@ def do_tokenize(content):
 def do_parse(tokens):
     parser = Parser(tokens)
     return parser.parse()
+
+
+def do_evaluation(tree):
+    return evaluate(tree)
+
+
+def check_errors():
+    if Errors.had_errors:
+        sys.exit(65)
+
 
 
 if __name__ == "__main__":
