@@ -2,6 +2,7 @@ from syntax import Literal, Grouping, Unary, Binary
 
 
 def evaluate(node):
+    # print(f"...evaluating node {node}")
     match node:
         case Literal() as lit:
             return lit.value
@@ -22,11 +23,18 @@ def evaluate(node):
             left = evaluate(binary.left)
             right = evaluate(binary.right)
             operator = binary.operator
-            match operator:
-                case "*":
-                    return left * right
-                case "/":
-                    return left / right
+            try:
+                match operator:
+                    case "*":
+                        return left * right
+                    case "/":
+                        return left / right
+                    case "-":
+                        return left - right
+                    case "+":
+                        return left + right
+            except TypeError:
+                print("ouch!")
 
         case _:
             return NotImplementedError(node)

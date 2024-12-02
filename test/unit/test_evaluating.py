@@ -37,8 +37,15 @@ def test_evaluate_unary():
 def test_evaluate_binary_operators():
     assert evaluate(Binary(Literal(10), "*", Literal(2.5))) == 25
     assert evaluate(Binary(Literal(10), "/", Literal(4))) == 2.5
-    # 6 * 2.5 / (2 * 3)
+    # 6 * 2.5 / (2 * 3) => (/ (* 6.0 2.5) (group (* 2.0 3.0)))
     assert evaluate(Binary(Binary(Literal(6), "*", Literal(2.5)), "/", Grouping(Binary(Literal(2), "*", Literal(3))))) == 2.5
+
+    assert evaluate(Binary(Literal(12.8), "-", Literal(4.3))) == 8.5
+    assert evaluate(Binary(Literal(12.8), "+", Literal(4.3))) == 17.1
+    # 6 + 4 * 3 == 18 => (+ 6.0 (* 4.0 3.0))
+    assert evaluate(Binary(Literal(6), "+", Binary(Literal(4), "*", Literal(3)))) == 18
+    # (6 + 4) * 3 == 30 => (* (group (+ 6.0 4.0)) 3.0)
+    assert evaluate(Binary(Grouping(Binary(Literal(6), "+", Literal(4))), "*", Literal(3))) == 30
 
 
 def test_is_truthy():
