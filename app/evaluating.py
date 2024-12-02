@@ -43,6 +43,11 @@ def evaluate(node):
                     return left < right
                 case "<=":
                     return left <= right
+                # equality
+                case "==":
+                    return left == right
+                case "!=":
+                    return left != right
 
         case _:
             return NotImplementedError(node)

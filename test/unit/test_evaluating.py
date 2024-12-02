@@ -61,6 +61,15 @@ def test_comparison_operators():
     assert evaluate(Binary(Literal(-8), "<", Literal(0))) is True
 
 
+def test_equality_operators():
+    assert evaluate(Binary(Literal(12.0), "==", Literal(12))) is True
+    assert evaluate(Binary(Literal("test"), "==", Literal("test"))) is True
+    assert evaluate(Binary(Literal(True), "==", Literal(False))) is False
+    assert evaluate(Binary(Literal(None), "!=", Literal(False))) is True
+    assert evaluate(Binary(Literal(12), "!=", Literal("12"))) is True
+    assert evaluate(Binary(Literal(12), "!=", Binary(Literal(4), "*", Literal(3)))) is False
+
+
 def test_is_truthy():
     assert is_truthy(True) is True
     assert is_truthy(False) is False
