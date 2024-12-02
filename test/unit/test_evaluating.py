@@ -34,7 +34,7 @@ def test_evaluate_unary():
     assert evaluate(Unary("-", Grouping(Literal(12.0)))) == -12
 
 
-def test_evaluate_binary_operators():
+def test_evaluate_arithmetic_operators():
     assert evaluate(Binary(Literal(10), "*", Literal(2.5))) == 25
     assert evaluate(Binary(Literal(10), "/", Literal(4))) == 2.5
     # 6 * 2.5 / (2 * 3) => (/ (* 6.0 2.5) (group (* 2.0 3.0)))
@@ -46,6 +46,10 @@ def test_evaluate_binary_operators():
     assert evaluate(Binary(Literal(6), "+", Binary(Literal(4), "*", Literal(3)))) == 18
     # (6 + 4) * 3 == 30 => (* (group (+ 6.0 4.0)) 3.0)
     assert evaluate(Binary(Grouping(Binary(Literal(6), "+", Literal(4))), "*", Literal(3))) == 30
+
+
+def test_evaluate_string_concatenation():
+    assert evaluate(Binary(Literal("post"), "+", Literal("rock"))) == "postrock"
 
 
 def test_is_truthy():
