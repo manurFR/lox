@@ -1,5 +1,5 @@
 from evaluating import evaluate, is_truthy  # type: ignore
-from syntax import Literal, Grouping, Unary  # type: ignore
+from syntax import Literal, Grouping, Unary, Binary  # type: ignore
 
 
 def test_evaluate_literal_number():
@@ -32,6 +32,13 @@ def test_evaluate_unary():
     
     assert evaluate(Unary("-", Literal(3.14))) == -3.14
     assert evaluate(Unary("-", Grouping(Literal(12.0)))) == -12
+
+
+def test_evaluate_binary_operators():
+    assert evaluate(Binary(Literal(10), "*", Literal(2.5))) == 25
+    assert evaluate(Binary(Literal(10), "/", Literal(4))) == 2.5
+    # 6 * 2.5 / (2 * 3)
+    assert evaluate(Binary(Binary(Literal(6), "*", Literal(2.5)), "/", Grouping(Binary(Literal(2), "*", Literal(3))))) == 2.5
 
 
 def test_is_truthy():

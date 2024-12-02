@@ -1,12 +1,8 @@
-from syntax import Grouping, Literal, Unary
+from syntax import Literal, Grouping, Unary, Binary
 
 
 def evaluate(node):
     match node:
-        # case Literal(float()):
-        #     """Print the number 'with the minimum number of decimal places without losing precision'."""
-        #     return str(node.value).rstrip("0").rstrip(".")
-
         case Literal() as lit:
             return lit.value
         
@@ -21,6 +17,16 @@ def evaluate(node):
                     return not is_truthy(operand)
                 case "-":
                     return -operand
+                
+        case Binary() as binary:
+            left = evaluate(binary.left)
+            right = evaluate(binary.right)
+            operator = binary.operator
+            match operator:
+                case "*":
+                    return left * right
+                case "/":
+                    return left / right
 
         case _:
             return NotImplementedError(node)

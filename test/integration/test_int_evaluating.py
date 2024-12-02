@@ -48,3 +48,16 @@ def test_evauate_unary_operators(run_lox):
     _, output, _ = run_lox(command="evaluate", lox_source='!"strings are truthy"')
     assert output == "false"
     
+
+def test_evaluate_binary_operators(run_lox):
+    _, output, _ = run_lox(command="evaluate", lox_source="3 * 5")
+    assert output == "15"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="42/5")
+    assert output == "8.4"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="18 * 3 / (3 * 6)")
+    assert output == "3"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="(10.40 * 2) / 2")
+    assert output == "10.4"
