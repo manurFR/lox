@@ -19,3 +19,14 @@ def test_evaluate_literals(run_lox):
 
     _, output, _ = run_lox(command="evaluate", lox_source="10.40")
     assert output == "10.4"
+
+
+def test_evaluate_parentheses(run_lox):
+    _, output, _ = run_lox(command="evaluate", lox_source="(true)")
+    assert output == "true"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="( 10.40 )")
+    assert output == "10.4"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="((false))")
+    assert output == "false"

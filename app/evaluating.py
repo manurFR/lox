@@ -1,4 +1,4 @@
-from syntax import Literal
+from syntax import Grouping, Literal
 
 
 def evaluate(node):
@@ -10,5 +10,8 @@ def evaluate(node):
         case Literal():
             return repr(node)
         
+        case Grouping() as gp:
+            return evaluate(gp.expr)
+
         case _:
             return NotImplementedError(node)
