@@ -1,0 +1,44 @@
+from evaluating import evaluate, is_truthy  # type: ignore
+from syntax import Literal, Grouping, Unary  # type: ignore
+
+
+def test_evaluate_literal_number():
+    assert evaluate(Literal(12.345)) == 12.345
+    assert evaluate(Literal(12.3450)) == 12.345
+    assert evaluate(Literal(12.34506)) == 12.34506
+    assert evaluate(Literal(12.0)) == 12
+    assert evaluate(Literal(12)) == 12
+
+
+def test_evaluate_literal_others():
+    assert evaluate(Literal(True)) == True
+    assert evaluate(Literal(False)) == False
+    assert evaluate(Literal(None)) == None
+    assert evaluate(Literal("python")) == "python"
+
+
+def test_evaluate_grouping():
+    assert evaluate(Grouping(Literal(None))) == None
+    assert evaluate(Grouping(Literal(25.60))) == 25.6
+    assert evaluate(Grouping(Grouping(Literal("so much parentheses!")))) == "so much parentheses!"
+
+
+def test_evaluate_unary():
+    assert evaluate(Unary("!", Literal(False))) == True
+    assert evaluate(Unary("!", Literal(None))) == True
+    assert evaluate(Unary("!", Literal(True))) == False
+    assert evaluate(Unary("!", Literal(3.14))) == False
+    assert evaluate(Unary("!", Literal("string"))) == False
+    
+    assert evaluate(Unary("-", Literal(3.14))) == -3.14
+    assert evaluate(Unary("-", Grouping(Literal(12.0)))) == -12
+
+
+def test_is_truthy():
+    assert is_truthy(True) is True
+    assert is_truthy(False) is False
+    assert is_truthy(None) is False
+    assert is_truthy(666) is True
+    assert is_truthy(0) is True
+    assert is_truthy("so true") is True
+    assert is_truthy("") is True

@@ -64,7 +64,21 @@ def do_parse(tokens):
 
 
 def do_evaluation(tree):
-    return evaluate(tree)
+    expr = evaluate(tree)
+    # formatting expressions for the expected codecrafters output
+    match expr:
+        case float():
+            # print the number 'with the minimum number of decimal places without losing precision'
+            return str(expr).rstrip("0").rstrip(".")
+        
+        case None:
+            return "nil"
+        
+        case bool():
+            return str(expr).lower()
+        
+        case _:
+            return expr
 
 
 def check_errors():
