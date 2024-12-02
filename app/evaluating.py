@@ -24,6 +24,7 @@ def evaluate(node):
             right = evaluate(binary.right)
             operator = binary.operator
             match operator:
+                # arithmetic + string concatenation
                 case "*":
                     return left * right
                 case "/":
@@ -33,6 +34,15 @@ def evaluate(node):
                 case "+":
                     # '+' is already overloaded to do string concatenation in Python, so we have it for free in Lox!
                     return left + right
+                # relational
+                case ">":
+                    return left > right
+                case ">=":
+                    return left >= right
+                case "<":
+                    return left < right
+                case "<=":
+                    return left <= right
 
         case _:
             return NotImplementedError(node)

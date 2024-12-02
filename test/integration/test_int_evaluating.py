@@ -73,3 +73,12 @@ def test_evaluate_binary_operators(run_lox):
 
     _, output, _ = run_lox(command="evaluate", lox_source='"42"+"24"')
     assert output == "4224"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="10>5")
+    assert output == "true"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="11 <= 11.0")
+    assert output == "true"
+
+    _, output, _ = run_lox(command="evaluate", lox_source="(54 - 67) < -(114 / 57 + 11)")
+    assert output == "false"

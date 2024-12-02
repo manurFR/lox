@@ -52,6 +52,15 @@ def test_evaluate_string_concatenation():
     assert evaluate(Binary(Literal("post"), "+", Literal("rock"))) == "postrock"
 
 
+def test_comparison_operators():
+    assert evaluate(Binary(Literal(12.3), ">", Literal(3.14))) is True
+    assert evaluate(Binary(Literal(12.3), "<=", Literal(3.14))) is False
+    assert evaluate(Binary(Literal(12.3), "<=", Literal(12.30))) is True
+    assert evaluate(Binary(Literal(12.3), ">=", Literal(12.30))) is True
+    assert evaluate(Binary(Literal(12.3), ">=", Literal(0))) is True
+    assert evaluate(Binary(Literal(-8), "<", Literal(0))) is True
+
+
 def test_is_truthy():
     assert is_truthy(True) is True
     assert is_truthy(False) is False
