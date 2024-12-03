@@ -38,22 +38,22 @@ def main():
         case "parse":
             tokens = do_tokenize(file_contents)
             check_errors()
-            statements = do_parse(tokens)
-            print(statements)
+            expressions = do_parse(tokens)
+            if expressions:
+                print(expressions[0])
             check_errors()
 
         case "evaluate":
+            # TODO make evaluate work again, for codecrafters tests from previous stages
             tokens = do_tokenize(file_contents)
             check_errors()
-            statements = do_parse(tokens)
+            # 'evaluate' implies one expression only in the source file, for now
+            expressions = do_parse(tokens)
             check_errors()
             try:
                 interpreter = Interpreter()
-                # Keep only Expression statements and print their result value
-                for stmt in statements:
-                    if isinstance(stmt, Expression):
-                        output = interpreter.evaluate(stmt.expr)
-                        print(stringify(output))
+                output = interpreter.evaluate(expressions[0])
+                print(stringify(output))
             except LoxRuntimeError as e:
                 operator, value, message = e.args
                 print(f"{message}\n[line {operator.line}]", file=sys.stderr)

@@ -10,12 +10,14 @@ class Parser:
 
     def parse(self) -> list[NodeStmt]:
         statements = []
-        while not self.is_at_end():
+        while True:
             try:
                 statements.append(self.statement())
             except ParserError as pex:
                 Errors.report(*pex.args[0])
-                return statements
+                break
+            if self.is_at_end():
+                break
 
         return statements
         # try:
@@ -60,7 +62,7 @@ class Parser:
         return Print(value)
 
     def expression_statement(self):
-        return None
+        return self.expression()
         
     # Expression parsing
 
