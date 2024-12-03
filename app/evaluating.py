@@ -39,12 +39,16 @@ class Interpreter:
                         return left + right
                     # relational
                     case "GREATER":
+                        self.check_both_numbers(binary.operator, left, right)
                         return left > right
                     case "GREATER_EQUAL":
+                        self.check_both_numbers(binary.operator, left, right)
                         return left >= right
                     case "LESS":
+                        self.check_both_numbers(binary.operator, left, right)
                         return left < right
                     case "LESS_EQUAL":
+                        self.check_both_numbers(binary.operator, left, right)
                         return left <= right
                     # equality
                     case "EQUAL_EQUAL":

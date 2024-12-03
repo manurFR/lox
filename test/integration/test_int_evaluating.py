@@ -131,3 +131,17 @@ Operands must be numbers.
 Operands must be two numbers or two strings.
 [line 1]
 """.strip().split("\n")
+    
+    status, _, stderr = run_lox(command="evaluate", lox_source="false >= 50")
+    assert status == 70
+    assert stderr.split("\n") == """
+Operands must be numbers.
+[line 1]
+""".strip().split("\n")
+    
+    status, _, stderr = run_lox(command="evaluate", lox_source='("foo" + "bar") < 42')
+    assert status == 70
+    assert stderr.split("\n") == """
+Operands must be numbers.
+[line 1]
+""".strip().split("\n")

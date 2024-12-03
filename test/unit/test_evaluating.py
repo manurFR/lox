@@ -100,3 +100,11 @@ def test_runtime_errors(interpreter):
         interpreter.evaluate(Binary(Literal(5.0), MINUS, Literal(None)))
     with pytest.raises(LoxRuntimeError) as ex:
         interpreter.evaluate(Binary(Literal(56.0), PLUS, Literal("quatre")))
+    with pytest.raises(LoxRuntimeError) as ex:
+        interpreter.evaluate(Binary(Literal(56.0), GREATER, Literal("quatre")))
+    with pytest.raises(LoxRuntimeError) as ex:
+        interpreter.evaluate(Binary(Literal(False), GREATER_EQUAL, Literal("quatre")))
+    with pytest.raises(LoxRuntimeError) as ex:
+        interpreter.evaluate(Binary(Literal("foo"), LESS, Literal(99.9)))
+    with pytest.raises(LoxRuntimeError) as ex:
+        interpreter.evaluate(Binary(Literal("vier"), LESS_EQUAL, Literal("funf")))
