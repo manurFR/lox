@@ -31,8 +31,10 @@ class Interpreter:
                         self.check_both_numbers(binary.operator, left, right)
                         return left / right
                     case "MINUS":
+                        self.check_both_numbers(binary.operator, left, right)
                         return left - right
                     case "PLUS":
+                        self.check_both_numbers_or_strings(binary.operator, left, right)
                         # '+' is already overloaded to do string concatenation in Python, so we have it for free in Lox!
                         return left + right
                     # relational
@@ -75,6 +77,13 @@ class Interpreter:
         if isinstance(left, float) and isinstance(right, float):
             return
         raise LoxRuntimeError(operator, (left, right), "Operands must be numbers.")
+    
+
+    def check_both_numbers_or_strings(self, operator, left, right):
+        if ((isinstance(left, float) and isinstance(right, float)) or
+            (isinstance(left, str) and isinstance(right, str))):
+            return
+        raise LoxRuntimeError(operator, (left, right), "Operands must be two numbers or two strings.")
 
 
 class LoxRuntimeError(RuntimeError):
