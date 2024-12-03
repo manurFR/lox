@@ -11,14 +11,16 @@ class Parser:
     def parse(self) -> list[NodeStmt]:
         statements = []
         while not self.is_at_end():
-            statements.append(self.statement())
+            try:
+                statements.append(self.statement())
+            except ParserError as pex:
+                Errors.report(*pex.args[0])
+                return statements
 
         return statements
         # try:
             # return self.expression()
-        # except ParserError as pex:
-            # Errors.report(*pex.args[0])
-            # return ""
+
 
     # ## GRAMMAR ##
     """
