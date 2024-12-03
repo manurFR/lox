@@ -6,7 +6,6 @@ from syntax import NodeExpr, Binary, Grouping, Literal, Unary
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
-        # self.tokens = [t.toktype for t in tokens]
         self.current = 0
 
     def parse(self) -> NodeExpr | str:
@@ -37,7 +36,7 @@ class Parser:
         expr = self.comparison()
 
         while self.match(["EQUAL_EQUAL", "BANG_EQUAL"]):
-            operator = self.previous_token().lexeme  # '!=' or '==' characters
+            operator = self.previous_token() # '!=' or '=='
             right = self.factor()
             expr = Binary(expr, operator, right)
 
@@ -49,7 +48,7 @@ class Parser:
         expr = self.term()
 
         while self.match(["GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL"]):
-            operator = self.previous_token().lexeme  # '>' / '>=' / '<' / '<=' character(s)
+            operator = self.previous_token()  # '>' / '>=' / '<' / '<='
             right = self.factor()
             expr = Binary(expr, operator, right)
 
@@ -61,7 +60,7 @@ class Parser:
         expr = self.factor()
 
         while self.match(["PLUS", "MINUS"]):
-            operator = self.previous_token().lexeme  # '+' or '-' character
+            operator = self.previous_token()  # '+' or '-'
             right = self.factor()
             expr = Binary(expr, operator, right)
 
@@ -72,7 +71,7 @@ class Parser:
         expr = self.unary()
 
         while self.match(["STAR", "SLASH"]):
-            operator = self.previous_token().lexeme  # '*' or '/' character
+            operator = self.previous_token()  # '*' or '/'
             right = self.unary()
             expr = Binary(expr, operator, right)
 
@@ -84,7 +83,7 @@ class Parser:
                         | primary ;
         """
         if self.match(["BANG", "MINUS"]):
-            operator = self.previous_token().lexeme  # '!' or '-' character
+            operator = self.previous_token()  # '!' or '-'
             right = self.unary()
             return Unary(operator, right)
         return self.primary()

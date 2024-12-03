@@ -3,7 +3,7 @@ import sys
 from errors import Errors
 from scanning import tokenize
 from parsing import Parser
-from evaluating import evaluate
+from evaluating import Interpreter, LoxRuntimeError
 
 AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate']
 
@@ -46,9 +46,13 @@ def main():
             check_errors()
             ast_root = do_parse(tokens)
             check_errors()
-            output = do_evaluation(ast_root)
-            print(output)
-
+            try:
+                output = do_evaluation(ast_root)
+                print(output)
+            except LoxRuntimeError as e:
+                operator, value, message = e.args
+                print(f"{message}\n[line {operator.line}]", file=sys.stderr)
+                sys.exit(70)
 
 
 def do_tokenize(content):
@@ -64,7 +68,8 @@ def do_parse(tokens):
 
 
 def do_evaluation(tree):
-    expr = evaluate(tree)
+    interpreter = Interpreter()
+    expr = interpreter.evaluate(tree)
     # formatting expressions for the expected codecrafters output
     match expr:
         case float():

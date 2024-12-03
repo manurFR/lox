@@ -3,20 +3,31 @@ import re
 from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError  # type: ignore
 from scanning import Token  # type: ignore
 
+TOKEN_PATTERN = re.compile(r'(\w+) (".*"|.*) (null|.+)')
+
+
+def _parse_token(line):
+    if match := TOKEN_PATTERN.match(line.strip()):
+        toktype, lexeme, literal = match.groups()
+        if toktype == "NUMBER":
+            literal = float(literal)
+        return Token(toktype, lexeme, literal, 1)
+    raise ValueError
+
 
 def _text2tokens(text):
-    p = re.compile(r'(\w+) (".*"|.*) (null|.+)')
     tokens = []
     for line in text.strip().split("\n"):
-        if (match := p.match(line.strip())):
-            toktype, lexeme, literal = match.groups()
-            if toktype == "NUMBER":
-                literal = float(literal)
-            tokens.append(Token(toktype, lexeme, literal, 1))
+        try:
+            token = _parse_token(line)
+            tokens.append(token)
+        except ValueError:
+            pass
     tokens.append(Token("EOF", "", None, 2))
     return tokens
 
 
+# prepare tokens
 TOKENS = _text2tokens("""
                       NUMBER "2" 2.0
                       STAR * null
@@ -24,34 +35,40 @@ TOKENS = _text2tokens("""
                       """)
 LAST = len(TOKENS) - 1
 
+NOT_EQUAL = _parse_token("BANG_EQUAL != null")
+LESS_EQUAL = _parse_token("LESS_EQUAL <= null")
+PLUS = _parse_token("PLUS + null")
+MINUS = _parse_token("MINUS - null")
+DIVISE = _parse_token("SLASH / null")
+
 
 def test_Parser_equality():
     assert Parser(_text2tokens("""STRING "yes" yes
                                   BANG_EQUAL != null
-                                  STRING "ok" ok""")).equality() == Binary(Literal("yes"), "!=", Literal("ok"))
+                                  STRING "ok" ok""")).equality() == Binary(Literal("yes"), NOT_EQUAL, Literal("ok"))
 
 
 def test_Parser_comparison():
     assert Parser(_text2tokens("""NUMBER "12" 12.0
                                   LESS_EQUAL <= null
-                                  NUMBER "33.3" 33.3""")).comparison() == Binary(Literal(12.0), "<=", Literal(33.3))
+                                  NUMBER "33.3" 33.3""")).comparison() == Binary(Literal(12.0), LESS_EQUAL, Literal(33.3))
     
 
 def test_Parser_term():
     assert Parser(_text2tokens("""NUMBER "12" 12.0
                                   PLUS + null
-                                  NUMBER "2.5" 2.5""")).term() == Binary(Literal(12.0), "+", Literal(2.5))
+                                  NUMBER "2.5" 2.5""")).term() == Binary(Literal(12.0), PLUS, Literal(2.5))
     
 
 def test_Parser_factor():
     assert Parser(_text2tokens("""NUMBER "12" 12.0
                                   SLASH / null
-                                  NUMBER "2.5" 2.5""")).factor() == Binary(Literal(12.0), "/", Literal(2.5))
+                                  NUMBER "2.5" 2.5""")).factor() == Binary(Literal(12.0), DIVISE, Literal(2.5))
 
 
 def test_Parser_unary():
     assert Parser(_text2tokens("""MINUS - null
-                                  NUMBER "12" 12.0""")).unary() == Unary("-", Literal(12.0))
+                                  NUMBER "12" 12.0""")).unary() == Unary(MINUS, Literal(12.0))
     assert Parser(_text2tokens("""STRING "test" test""")).unary() == Literal("test")
 
 

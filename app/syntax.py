@@ -16,20 +16,20 @@ class NodeExpr:
 @dataclass
 class Binary(NodeExpr):
     left: NodeExpr  # expr
-    operator: str
+    operator: 'Token'  # type: ignore
     right: NodeExpr  # expr
 
     def __repr__(self) -> str:
-        return f"({self.operator} {self.left} {self.right})"
+        return f"({self.operator.lexeme} {self.left} {self.right})"
 
 
 @dataclass
 class Unary(NodeExpr):
-    operator: str
+    operator: 'Token'  # type: ignore
     right: NodeExpr  # expr
 
     def __repr__(self) -> str:
-        return f"({self.operator} {self.right})"
+        return f"({self.operator.lexeme} {self.right})"
 
 
 @dataclass

@@ -1,13 +1,14 @@
-from syntax import Binary, Grouping, Literal, Unary
+from syntax import Binary, Grouping, Literal, Unary # type: ignore
+from tokens import MINUS, MULTIPLY, NOT
 
 
 def test_Binary_repr():
-    assert repr(Binary(Literal(2.5), "*", Literal(4.0))) == "(* 2.5 4.0)"
+    assert repr(Binary(Literal(2.5), MULTIPLY, Literal(4.0))) == "(* 2.5 4.0)"
 
 
 def test_Unary_repr():
-    assert repr(Unary("-", Literal(5.5))) == "(- 5.5)"
-    assert repr(Unary("!", Literal(False))) == "(! false)"
+    assert repr(Unary(MINUS, Literal(5.5))) == "(- 5.5)"
+    assert repr(Unary(NOT, Literal(False))) == "(! false)"
 
 
 def test_Grouping_repr():

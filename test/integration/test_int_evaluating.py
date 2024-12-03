@@ -94,3 +94,14 @@ def test_evaluate_binary_operators(run_lox):
 
     _, output, _ = run_lox(command="evaluate", lox_source='"foo" != "bar"')
     assert output == "true"
+
+
+def test_runtime_errors(run_lox):
+    status, _, stderr = run_lox(command="evaluate", lox_source='-"hellow world!"')
+
+    assert status == 70
+
+    assert stderr.split("\n") == """
+Operand must be a number.
+[line 1]
+""".strip().split("\n")
