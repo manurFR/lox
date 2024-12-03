@@ -1,12 +1,13 @@
 import sys
 
+from output import stringify
 from errors import Errors
 from scanning import Token, tokenize
 from parsing import Parser
 from evaluating import Interpreter, LoxRuntimeError
-from syntax import NodeStmt
+from syntax import Expression, NodeStmt
 
-AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate']
+AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate', 'run']
 
 
 def main():
@@ -47,11 +48,28 @@ def main():
             statements = do_parse(tokens)
             check_errors()
             try:
-                do_evaluation(statements)
+                interpreter = Interpreter()
+                # Keep only Expression statements and print their result value
+                for stmt in statements:
+                    if isinstance(stmt, Expression):
+                        output = interpreter.evaluate(stmt.expr)
+                        print(stringify(output))
             except LoxRuntimeError as e:
                 operator, value, message = e.args
                 print(f"{message}\n[line {operator.line}]", file=sys.stderr)
                 sys.exit(70)
+
+        case "run":
+            tokens = do_tokenize(file_contents)
+            check_errors()
+            statements = do_parse(tokens)
+            check_errors()
+            try:
+                do_evaluation(statements)
+            except LoxRuntimeError as e:
+                operator, value, message = e.args
+                print(f"{message}\n[line {operator.line}]", file=sys.stderr)
+                sys.exit(70)      
 
 
 def do_tokenize(content) -> list[Token]:
