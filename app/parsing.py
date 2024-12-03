@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import NodeExpr, Binary, Grouping, Literal, Unary
+from syntax import Binary, Grouping, Literal, NodeStmt, Print, Unary
 
 
 class Parser:
@@ -8,15 +8,28 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
-    def parse(self) -> NodeExpr | str:
-        try:
-            return self.expression()
-        except ParserError as pex:
-            Errors.report(*pex.args[0])
-            return ""
+    def parse(self) -> list[NodeStmt]:
+        statements = []
+        while not self.is_at_end():
+            statements.append(self.statement())
+
+        return statements
+        # try:
+            # return self.expression()
+        # except ParserError as pex:
+            # Errors.report(*pex.args[0])
+            # return ""
 
     # ## GRAMMAR ##
     """
+    program        → statement* EOF ;
+
+    statement      → exprStmt
+                   | printStmt ;
+
+    exprStmt       → expression ";" ;
+    printStmt      → "print" expression ";" ;
+
     expression     → equality ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -27,6 +40,27 @@ class Parser:
     primary        → NUMBER | STRING | "true" | "false" | "nil"
                     | "(" expression ")" ;
     """
+
+    def statement(self):
+        if self.match("PRINT"):
+            return self.print_statement()
+        
+        # If it's not a statement, it MUST be an expression
+        return self.expression_statement()
+        
+    # Statement parsing
+
+    def print_statement(self):
+        currtok = self.previous_token()  # PRINT token
+        value = self.expression()
+        if not self.match("SEMICOLON"):
+            raise self.error(currtok, "Expected ';' after value.")
+        return Print(value)
+
+    def expression_statement(self):
+        return None
+        
+    # Expression parsing
 
     def expression(self):
         return self.equality()
@@ -42,7 +76,6 @@ class Parser:
 
         return expr
     
-    
     def comparison(self):
         """ comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ; """
         expr = self.term()
@@ -53,7 +86,6 @@ class Parser:
             expr = Binary(expr, operator, right)
 
         return expr
-
     
     def term(self):
         """ term           → factor ( ( "-" | "+" ) factor )* ; """

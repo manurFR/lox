@@ -7,6 +7,7 @@ Display the tree by calling repr(root) or print(root)
 from dataclasses import dataclass
 from typing import Any
 
+# Nodes for Expression statements
 
 class NodeExpr:
     # Only for type hints
@@ -48,3 +49,26 @@ class Grouping(NodeExpr):
 
     def __repr__(self) -> str:
         return f"(group {self.expr})"
+
+
+# Nodes for other statements
+
+class NodeStmt:
+    # Only for type hints
+    pass
+
+
+@dataclass
+class Expression(NodeStmt):
+    expr: NodeExpr
+
+    def __repr__(self) -> str:
+        return repr(self.expr)
+    
+
+@dataclass
+class Print(NodeStmt):
+    expr: NodeExpr
+
+    def __repr__(self) -> str:
+        return f"print {self.expr};"

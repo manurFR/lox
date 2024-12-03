@@ -37,7 +37,7 @@ def lookahead_capture(remaining, valid_chars, valid_sep=None):
     return remaining[:next_char], next_char - 1
 
 
-def tokenize(source):
+def tokenize(source: str) -> tuple[list[Token], list[tuple]]:
     tokens, errors = [], []
     current = 0
     line = 1

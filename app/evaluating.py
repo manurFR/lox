@@ -1,7 +1,23 @@
-from syntax import Literal, Grouping, Unary, Binary
+from typing import Any
+from output import stringify
+from syntax import NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary
+
 
 class Interpreter:
-    def evaluate(self, node):
+    def execute(self, node: NodeStmt) -> None:
+        """Execute a statement
+           (ie. a part of the Abstract-Syntax Tree that define a statement and thus has a side-effect at execution but don't return a value;
+            this includes the root statement of the program; this also implies calling self.evaluate() when a expression is fed to the statement)"""
+        match node:
+            case Print() as stmt:
+                value = self.evaluate(stmt.expr)
+                print(stringify(value))
+            case _:
+                raise NotImplementedError(node)
+
+    def evaluate(self, node: NodeExpr) -> Any:
+        """Evaluate an expression 
+           (ie. a part of the Abstract-Syntax Tree that define an expression and thus return a value at execution)"""
         # print(f"...evaluating node {node}")
         match node:
             case Literal() as lit:
@@ -59,7 +75,7 @@ class Interpreter:
                         return left != right
 
             case _:
-                return NotImplementedError(node)
+                raise NotImplementedError(node)
             
 
     def is_truthy(self, value):
