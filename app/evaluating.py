@@ -25,8 +25,10 @@ class Interpreter:
                 match binary.operator.toktype:
                     # arithmetic + string concatenation
                     case "STAR":
+                        self.check_both_numbers(binary.operator, left, right)
                         return left * right
                     case "SLASH":
+                        self.check_both_numbers(binary.operator, left, right)
                         return left / right
                     case "MINUS":
                         return left - right
@@ -67,6 +69,12 @@ class Interpreter:
         if isinstance(value, float):
             return
         raise LoxRuntimeError(operator, value, "Operand must be a number.")
+    
+
+    def check_both_numbers(self, operator, left, right):
+        if isinstance(left, float) and isinstance(right, float):
+            return
+        raise LoxRuntimeError(operator, (left, right), "Operands must be numbers.")
 
 
 class LoxRuntimeError(RuntimeError):

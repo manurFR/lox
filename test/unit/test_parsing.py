@@ -91,7 +91,6 @@ def test_Parser_primary_with_unterminated_parentheses():
                                STRING "fail" fail"""))
     with pytest.raises(ParserError) as ex:
         p.primary()
-        assert False  # we should never arrive here
     assert ex.value.args[0] == (1, "Expected ')' after expression.", " at '('")
 
 

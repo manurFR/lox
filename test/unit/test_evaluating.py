@@ -41,18 +41,18 @@ def test_evaluate_unary(interpreter):
 
 
 def test_evaluate_arithmetic_operators(interpreter):
-    assert interpreter.evaluate(Binary(Literal(10), MULTIPLY, Literal(2.5))) == 25
-    assert interpreter.evaluate(Binary(Literal(10), DIVISE, Literal(4))) == 2.5
+    assert interpreter.evaluate(Binary(Literal(10.0), MULTIPLY, Literal(2.5))) == 25
+    assert interpreter.evaluate(Binary(Literal(10.0), DIVISE, Literal(4.0))) == 2.5
     # 6 * 2.5 / (2 * 3) => (/ (* 6.0 2.5) (group (* 2.0 3.0)))
     assert interpreter.evaluate(
-        Binary(Binary(Literal(6), MULTIPLY, Literal(2.5)), DIVISE, Grouping(Binary(Literal(2), MULTIPLY, Literal(3))))) == 2.5
+        Binary(Binary(Literal(6.0), MULTIPLY, Literal(2.5)), DIVISE, Grouping(Binary(Literal(2.0), MULTIPLY, Literal(3.0))))) == 2.5
 
     assert interpreter.evaluate(Binary(Literal(12.8), MINUS, Literal(4.3))) == 8.5
     assert interpreter.evaluate(Binary(Literal(12.8), PLUS, Literal(4.3))) == 17.1
     # 6 + 4 * 3 == 18 => (+ 6.0 (* 4.0 3.0))
-    assert interpreter.evaluate(Binary(Literal(6), PLUS, Binary(Literal(4), MULTIPLY, Literal(3)))) == 18
+    assert interpreter.evaluate(Binary(Literal(6.0), PLUS, Binary(Literal(4.0), MULTIPLY, Literal(3.0)))) == 18
     # (6 + 4) * 3 == 30 => (* (group (+ 6.0 4.0)) 3.0)
-    assert interpreter.evaluate(Binary(Grouping(Binary(Literal(6), PLUS, Literal(4))), MULTIPLY, Literal(3))) == 30
+    assert interpreter.evaluate(Binary(Grouping(Binary(Literal(6.0), PLUS, Literal(4.0))), MULTIPLY, Literal(3.0))) == 30
 
 
 def test_evaluate_string_concatenation(interpreter):
@@ -64,24 +64,24 @@ def test_comparison_operators(interpreter):
     assert interpreter.evaluate(Binary(Literal(12.3), LESS_EQUAL, Literal(3.14))) is False
     assert interpreter.evaluate(Binary(Literal(12.3), LESS_EQUAL, Literal(12.30))) is True
     assert interpreter.evaluate(Binary(Literal(12.3), GREATER_EQUAL, Literal(12.30))) is True
-    assert interpreter.evaluate(Binary(Literal(12.3), GREATER_EQUAL, Literal(0))) is True
-    assert interpreter.evaluate(Binary(Literal(-8), LESS, Literal(0))) is True
+    assert interpreter.evaluate(Binary(Literal(12.3), GREATER_EQUAL, Literal(0.0))) is True
+    assert interpreter.evaluate(Binary(Literal(-8.1), LESS, Literal(0.0))) is True
 
 
 def test_equality_operators(interpreter):
-    assert interpreter.evaluate(Binary(Literal(12.0), EQUAL_EQUAL, Literal(12))) is True
+    assert interpreter.evaluate(Binary(Literal(12.0), EQUAL_EQUAL, Literal(12.0))) is True
     assert interpreter.evaluate(Binary(Literal("test"), EQUAL_EQUAL, Literal("test"))) is True
     assert interpreter.evaluate(Binary(Literal(True), EQUAL_EQUAL, Literal(False))) is False
     assert interpreter.evaluate(Binary(Literal(None), NOT_EQUAL, Literal(False))) is True
-    assert interpreter.evaluate(Binary(Literal(12), NOT_EQUAL, Literal("12"))) is True
-    assert interpreter.evaluate(Binary(Literal(12), NOT_EQUAL, Binary(Literal(4), MULTIPLY, Literal(3)))) is False
+    assert interpreter.evaluate(Binary(Literal(12.0), NOT_EQUAL, Literal("12"))) is True
+    assert interpreter.evaluate(Binary(Literal(12.0), NOT_EQUAL, Binary(Literal(4.0), MULTIPLY, Literal(3.0)))) is False
 
 
 def test_is_truthy(interpreter):
     assert interpreter.is_truthy(True) is True
     assert interpreter.is_truthy(False) is False
     assert interpreter.is_truthy(None) is False
-    assert interpreter.is_truthy(666) is True
+    assert interpreter.is_truthy(666.0) is True
     assert interpreter.is_truthy(0) is True
     assert interpreter.is_truthy("so true") is True
     assert interpreter.is_truthy("") is True
@@ -90,5 +90,9 @@ def test_is_truthy(interpreter):
 def test_runtime_errors(interpreter):
     with pytest.raises(LoxRuntimeError) as ex:
         interpreter.evaluate(Unary(MINUS, Literal("fail")))
-        assert False  # we should never arrive here
     assert ex.value.args == (MINUS, "fail", "Operand must be a number.")
+
+    with pytest.raises(LoxRuntimeError) as ex:
+        interpreter.evaluate(Binary(Literal(True), MULTIPLY, Literal(28.0)))
+    with pytest.raises(LoxRuntimeError) as ex:
+        interpreter.evaluate(Binary(Literal(5.0), DIVISE, Literal("3")))
