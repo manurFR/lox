@@ -1,6 +1,6 @@
 from typing import Any
 from output import stringify
-from syntax import NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary
+from syntax import Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary
 
 
 class Interpreter:
@@ -12,6 +12,11 @@ class Interpreter:
             case Print() as stmt:
                 value = self.evaluate(stmt.expr)
                 print(stringify(value))
+        
+            case Expression() as stmt:
+                # do not display the value: discard it ; the statement's side-effect is the point
+                value = self.evaluate(stmt.expr)
+        
             case _:
                 raise NotImplementedError(node)
 
@@ -73,7 +78,7 @@ class Interpreter:
                         return left == right
                     case "BANG_EQUAL":
                         return left != right
-
+                    
             case _:
                 raise NotImplementedError(node)
             

@@ -1,12 +1,15 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Binary, Grouping, Literal, NodeStmt, Print, Unary
+from syntax import Binary, Expression, Grouping, Literal, NodeStmt, Print, Unary
 
 
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens, lenient=False):
         self.tokens = tokens
         self.current = 0
+        # lenient mode allows expressions without ending ';' to compile and returns their value
+        #  ...it's the magic that allow commands 'parse' and 'evaluate' to still work
+        self.strict = not lenient
 
     def parse(self) -> list[NodeStmt]:
         statements = []
@@ -20,9 +23,6 @@ class Parser:
                 break
 
         return statements
-        # try:
-            # return self.expression()
-
 
     # ## GRAMMAR ##
     """
@@ -62,7 +62,12 @@ class Parser:
         return Print(value)
 
     def expression_statement(self):
-        return self.expression()
+        # Expressions with side effect
+        currtok = self.peek()
+        value = self.expression()
+        if self.strict and not self.match("SEMICOLON"):
+            raise self.error(currtok, "Expected ';' after expression.")
+        return Expression(value)
         
     # Expression parsing
 

@@ -38,21 +38,24 @@ def main():
         case "parse":
             tokens = do_tokenize(file_contents)
             check_errors()
-            expressions = do_parse(tokens)
+            expressions = do_parse(tokens, lenient=True)
             if expressions:
                 print(expressions[0])
             check_errors()
 
         case "evaluate":
-            # TODO make evaluate work again, for codecrafters tests from previous stages
             tokens = do_tokenize(file_contents)
             check_errors()
             # 'evaluate' implies one expression only in the source file, for now
-            expressions = do_parse(tokens)
+            expressions = do_parse(tokens, lenient=True)
             check_errors()
+            if not isinstance(expressions[0], Expression):
+                print("Command 'evaluate' expected a single expression.")
+                sys.exit(70)
+            expr = expressions[0].expr
             try:
                 interpreter = Interpreter()
-                output = interpreter.evaluate(expressions[0])
+                output = interpreter.evaluate(expr)
                 print(stringify(output))
             except LoxRuntimeError as e:
                 operator, value, message = e.args
@@ -79,8 +82,8 @@ def do_tokenize(content) -> list[Token]:
     return tokens
 
 
-def do_parse(tokens) -> list[NodeStmt]:
-    parser = Parser(tokens)
+def do_parse(tokens, lenient=False) -> list[NodeStmt]:
+    parser = Parser(tokens, lenient)
     return parser.parse()
 
 
