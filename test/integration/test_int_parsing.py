@@ -44,6 +44,11 @@ def test_parse_equality_operators(run_lox):
     assert output == "(== baz baz)"
 
 
+def test_parse_expression(run_lox):
+    _, output, _ = run_lox(command="parse", lox_source="76 - 67 >= -33 * 2 / 33 + 61")
+    assert output == "(>= (- 76.0 67.0) (+ (/ (* (- 33.0) 2.0) 33.0) 61.0))"
+
+
 def test_parse_unterminated_parentheses(run_lox):
     status, output, stderr = run_lox(command="parse", lox_source="(12")
     assert output == ""

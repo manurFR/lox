@@ -80,7 +80,7 @@ class Parser:
 
         while self.match(["EQUAL_EQUAL", "BANG_EQUAL"]):
             operator = self.previous_token() # '!=' or '=='
-            right = self.factor()
+            right = self.comparison()
             expr = Binary(expr, operator, right)
 
         return expr
@@ -91,7 +91,7 @@ class Parser:
 
         while self.match(["GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL"]):
             operator = self.previous_token()  # '>' / '>=' / '<' / '<='
-            right = self.factor()
+            right = self.term()
             expr = Binary(expr, operator, right)
 
         return expr
