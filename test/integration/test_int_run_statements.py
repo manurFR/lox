@@ -105,3 +105,17 @@ var result = (hello + bar) / world;
 
     assert status == 70
     assert stderr == "Undefined variable 'bar'.\n[line 4]"
+
+
+def test_run_variable_assignment(run_lox):
+    source = """
+var quz;
+var hello;
+
+quz = hello = 16 + 34 * 92;
+print quz;
+print hello;
+""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "3144\n3144"

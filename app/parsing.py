@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Binary, Expression, Grouping, Literal, NodeStmt, Print, Unary, Var, Variable
+from syntax import Assign, Binary, Expression, Grouping, Literal, NodeStmt, Print, Unary, Var, Variable
 
 
 class Parser:
@@ -39,7 +39,9 @@ class Parser:
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
 
-    expression     → equality ;
+    expression     → assignment ;
+    assignment     → IDENTIFIER "=" assignment
+                    | equality ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -109,7 +111,31 @@ class Parser:
     # Expression parsing
 
     def expression(self):
-        return self.equality()
+        """ expression     → assignment ; """
+        return self.assignment()
+    
+    def assignment(self):
+        """ assignment     → IDENTIFIER "=" assignment | equality ; """
+        # Assignments (like "a = 3") are tricky because they start as regular expression
+        #  (here "a" could mean we want the value of the variable) but the parser can only
+        #  understand it is an assignment later, when it encounters the '=' token.
+        # So we will parse the first tokens as an expression, and convert that to the left-hand
+        #  side of an assignment, ie. a token, only if we meet an equal sign afterwards.
+        # Otherwise we will return the expression... as an expression.
+        expr = self.equality()
+
+        if self.match("EQUAL"):  # it's an assignment, not a right-side expression
+            currtok = self.previous_token()  # '=' token
+            value = self.assignment()  # a = b = 1 is allowed
+
+            if isinstance(expr, Variable):
+                name = expr.name
+                return Assign(name, value)
+            else:
+                self.error(currtok, "Invalid assignment target.")
+
+        # It wasn't an assignment, go on parsing it as an expression
+        return expr
     
     def equality(self):
         """ equality       → comparison ( ( "!=" | "==" ) comparison )* ; """

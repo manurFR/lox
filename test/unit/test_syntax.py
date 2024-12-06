@@ -1,5 +1,5 @@
 from scanning import Token  # type: ignore
-from syntax import Binary, Expression, Grouping, Literal, Print, Unary, Var, Variable # type: ignore
+from syntax import Assign, Binary, Expression, Grouping, Literal, Print, Unary, Var, Variable # type: ignore
 from tokens import MINUS, MULTIPLY, NOT
 
 
@@ -27,6 +27,10 @@ def test_Literal_repr():
 
 def test_Variable_repr():
     assert repr(Variable(Token("IDENTIFIER", "count", None, 1))) == "count"
+
+
+def test_Assign_repr():
+    assert repr(Assign(Token("IDENTIFIER", "count", None, 1), Literal(5))) == "count = 5"
 
 
 # Statement classes

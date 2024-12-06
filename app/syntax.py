@@ -60,6 +60,15 @@ class Variable(NodeExpr):
         return self.name.lexeme
 
 
+@dataclass
+class Assign(NodeExpr):
+    name: 'Token' # type: ignore
+    value: NodeExpr
+
+    def __repr__(self) -> str:
+        return f"{self.name.lexeme} = {self.value}"
+
+
 # Nodes for other statements
 
 class NodeStmt:

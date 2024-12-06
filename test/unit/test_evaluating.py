@@ -1,7 +1,8 @@
 import pytest
 from errors import LoxRuntimeError
 from evaluating import Interpreter  # type: ignore
-from syntax import Literal, Grouping, Unary, Binary  # type: ignore
+from scanning import Token
+from syntax import Assign, Literal, Grouping, Unary, Binary, Var, Variable  # type: ignore
 from tokens import DIVISE, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, MULTIPLY, NOT, NOT_EQUAL, PLUS
 
 @pytest.fixture
@@ -60,7 +61,7 @@ def test_evaluate_string_concatenation(interpreter):
     assert interpreter.evaluate(Binary(Literal("post"), PLUS, Literal("rock"))) == "postrock"
 
 
-def test_comparison_operators(interpreter):
+def test_evalute_comparison_operators(interpreter):
     assert interpreter.evaluate(Binary(Literal(12.3), GREATER, Literal(3.14))) is True
     assert interpreter.evaluate(Binary(Literal(12.3), LESS_EQUAL, Literal(3.14))) is False
     assert interpreter.evaluate(Binary(Literal(12.3), LESS_EQUAL, Literal(12.30))) is True
@@ -69,13 +70,24 @@ def test_comparison_operators(interpreter):
     assert interpreter.evaluate(Binary(Literal(-8.1), LESS, Literal(0.0))) is True
 
 
-def test_equality_operators(interpreter):
+def test_evaluate_equality_operators(interpreter):
     assert interpreter.evaluate(Binary(Literal(12.0), EQUAL_EQUAL, Literal(12.0))) is True
     assert interpreter.evaluate(Binary(Literal("test"), EQUAL_EQUAL, Literal("test"))) is True
     assert interpreter.evaluate(Binary(Literal(True), EQUAL_EQUAL, Literal(False))) is False
     assert interpreter.evaluate(Binary(Literal(None), NOT_EQUAL, Literal(False))) is True
     assert interpreter.evaluate(Binary(Literal(12.0), NOT_EQUAL, Literal("12"))) is True
     assert interpreter.evaluate(Binary(Literal(12.0), NOT_EQUAL, Binary(Literal(4.0), MULTIPLY, Literal(3.0)))) is False
+
+
+def test_evaluate_variable_reading(interpreter):
+    interpreter.environment.define("a", 12.3)  # the variable must be defined before we can read it value
+    assert interpreter.evaluate(Variable(Token("IDENTIFIER", "a", None, 1))) == 12.3
+
+
+def test_evaluate_assignment(interpreter):
+    interpreter.environment.define("v", None)  # "v" must be defined before we can assign it a value
+    assert interpreter.evaluate(Assign(Token("IDENTIFIER", "v", None, 1), Literal("test"))) == "test"
+    assert interpreter.environment.values == {"v": "test"}
 
 
 def test_is_truthy(interpreter):

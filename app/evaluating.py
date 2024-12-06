@@ -2,7 +2,7 @@ from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
 from output import stringify
-from syntax import Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
+from syntax import Assign, Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
 
 
 class Interpreter:
@@ -92,6 +92,11 @@ class Interpreter:
                     
             case Variable() as variable:
                 return self.environment.get(variable.name)
+            
+            case Assign() as assignment:
+                value = self.evaluate(assignment.value)
+                self.environment.assign(assignment.name, value)
+                return value
 
             case _:
                 raise NotImplementedError(node)

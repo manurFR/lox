@@ -20,3 +20,16 @@ def test_Environment_get():
     with pytest.raises(LoxRuntimeError) as exc:
         e.get(Token("IDENTIFIER", "zzz", None, 4))
     assert exc.value.args == (Token("IDENTIFIER", "zzz", None, 4), "Undefined variable 'zzz'.")
+
+
+def test_Environment_assign():
+    e = Environment()
+    e.define("v", None)
+    var_token = Token("IDENTIFIER", "v", None, 1)
+    assert e.get(var_token) is None
+    e.assign(var_token, 99.9)
+    assert e.get(var_token) == 99.9
+
+    with pytest.raises(LoxRuntimeError) as exc:
+        e.assign(Token("IDENTIFIER", "zzz", None, 4), "hello")
+    assert exc.value.args == (Token("IDENTIFIER", "zzz", None, 4), "Undefined variable 'zzz'.")
