@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Binary, Expression, Grouping, Literal, NodeStmt, Print, Unary
+from syntax import Binary, Expression, Grouping, Literal, NodeStmt, Print, Unary, Var, Variable
 
 
 class Parser:
@@ -15,7 +15,7 @@ class Parser:
         statements = []
         while True:
             try:
-                statements.append(self.statement())
+                statements.append(self.declaration())
             except ParserError as pex:
                 Errors.report(*pex.args[0])
                 break
@@ -26,10 +26,15 @@ class Parser:
 
     # ## GRAMMAR ##
     """
-    program        → statement* EOF ;
+    program        → declaration* EOF ;
+
+    declaration    → varDecl
+                    | statement ;
+
+    varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
     statement      → exprStmt
-                   | printStmt ;
+                    | printStmt ;
 
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
@@ -41,11 +46,26 @@ class Parser:
     factor         → unary ( ( "/" | "*" ) unary )* ;
     unary          → ( "!" | "-" ) unary
                     | primary ;
-    primary        → NUMBER | STRING | "true" | "false" | "nil"
-                    | "(" expression ")" ;
+    primary        → "true" | "false" | "nil"
+                    | NUMBER | STRING
+                    | "(" expression ")"
+                    | IDENTIFIER ;
     """
 
+    def declaration(self):
+        """ declaration    → varDecl | statement ; """
+        try:
+            if self.match("VAR"):
+                return self.var_declaration_statement()
+        except ParserError as pex:
+            Errors.report(*pex.args[0])
+            self.synchronize_post_error()
+            return
+        
+        return self.statement()
+
     def statement(self):
+        """ statement      → exprStmt | printStmt ; """
         if self.match("PRINT"):
             return self.print_statement()
         
@@ -55,6 +75,7 @@ class Parser:
     # Statement parsing
 
     def print_statement(self):
+        """ printStmt      → "print" expression ";" ; """
         currtok = self.previous_token()  # PRINT token
         value = self.expression()
         if not self.match("SEMICOLON"):
@@ -62,12 +83,28 @@ class Parser:
         return Print(value)
 
     def expression_statement(self):
+        """ exprStmt       → expression ";" ; """
         # Expressions with side effect
         currtok = self.peek()
         value = self.expression()
         if self.strict and not self.match("SEMICOLON"):
             raise self.error(currtok, "Expected ';' after expression.")
         return Expression(value)
+    
+    def var_declaration_statement(self):
+        """ varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ; """
+        currtok = self.peek()  # 'var'
+        if not self.match("IDENTIFIER"):
+            raise self.error(currtok, "Expected variable name.")
+        name = self.previous_token()
+
+        initializer = None
+        if self.match("EQUAL"):
+            initializer = self.expression()
+
+        if not self.match("SEMICOLON"):
+            raise self.error(currtok, "Expected ';' after variable declaration.")
+        return Var(name, expr=initializer)
         
     # Expression parsing
 
@@ -150,6 +187,9 @@ class Parser:
             if not self.match("RIGHT_PAREN"):
                 raise self.error(currtok, "Expected ')' after expression.")
             return Grouping(content)
+        
+        if self.match("IDENTIFIER"):
+            return Variable(self.previous_token())
         
         # Nothing matched
         raise self.error(self.peek(), "Expected expression.")

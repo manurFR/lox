@@ -1,10 +1,10 @@
 import sys
 
 from output import stringify
-from errors import Errors
+from errors import Errors, LoxRuntimeError
 from scanning import Token, tokenize
 from parsing import Parser
-from evaluating import Interpreter, LoxRuntimeError
+from evaluating import Interpreter
 from syntax import Expression, NodeStmt
 
 AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate', 'run']

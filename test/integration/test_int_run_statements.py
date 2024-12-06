@@ -1,7 +1,7 @@
 from fixtures import run_lox
 
 
-def test_evaluate_print(run_lox):
+def test_run_print(run_lox):
     _, output, _ = run_lox(command="run", lox_source='print "Hello World!";')
     assert output == "Hello World!"
 
@@ -36,7 +36,7 @@ false""".strip()
     assert stderr == "[line 1] Error at 'print': Expected ';' after value."
 
 
-def test_evaluate_expression_statements(run_lox):
+def test_run_expression_statements(run_lox):
     # expression statement results are discarded... the side-effects are their interesting parts.
     source = """
 (37 + 42 - 21) > (76 - 37) * 2;
@@ -65,3 +65,21 @@ print "this should not be printed";""".strip()
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at '\"Missing\"': Expected ';' after expression."
+
+
+def test_run_variable_declaration_and_accessing(run_lox):
+    source = """
+var a = "foo";
+print a ;
+var bar = 99;
+var foo = 99;
+print bar + foo;
+var quz = 99;
+print bar + foo + quz;
+var a = quz;
+var b = 2;
+print (8*(a + b)) / 202 + (100 - bar); // 8*101/202 + 1
+""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "foo\n198\n297\n5"

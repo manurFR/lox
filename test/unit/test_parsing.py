@@ -1,7 +1,8 @@
 import pytest
 import re
 from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError  # type: ignore
-from scanning import Token  # type: ignore
+from scanning import Token
+from syntax import Variable  # type: ignore
 
 TOKEN_PATTERN = re.compile(r'(\w+) (".*"|.*) (null|.+)')
 
@@ -84,6 +85,8 @@ def test_Parser_primary():
                                       NUMBER "3.14" 3.14
                                       RIGHT_PAREN ) null""")
     assert Parser(grouping_tokens).primary() == Grouping(Literal(3.14))
+
+    assert Parser([Token("IDENTIFIER", "pi", None, 1)]).primary() == Variable(Token("IDENTIFIER", "pi", None, 1))
 
 
 def test_Parser_primary_with_unterminated_parentheses():

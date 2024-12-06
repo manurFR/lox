@@ -1,5 +1,6 @@
 import pytest
-from evaluating import Interpreter, LoxRuntimeError  # type: ignore
+from errors import LoxRuntimeError
+from evaluating import Interpreter  # type: ignore
 from syntax import Literal, Grouping, Unary, Binary  # type: ignore
 from tokens import DIVISE, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, MULTIPLY, NOT, NOT_EQUAL, PLUS
 

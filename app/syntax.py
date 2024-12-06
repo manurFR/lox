@@ -5,7 +5,7 @@ Display the tree by calling repr(root) or print(root)
 """
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 # Nodes for Expression statements
 
@@ -49,6 +49,15 @@ class Grouping(NodeExpr):
 
     def __repr__(self) -> str:
         return f"(group {self.expr})"
+    
+
+@dataclass
+class Variable(NodeExpr):
+    """Expression for getting a variable value"""
+    name: 'Token' # type: ignore
+
+    def __repr__(self) -> str:
+        return self.name.lexeme
 
 
 # Nodes for other statements
@@ -72,3 +81,13 @@ class Print(NodeStmt):
 
     def __repr__(self) -> str:
         return f"print {self.expr};"
+
+
+@dataclass 
+class Var(NodeStmt):
+    """Statement for declaring a variable (with optional setting)"""
+    name: 'Token' # type: ignore
+    expr: Optional[NodeExpr]
+
+    def __repr__(self) -> str:
+        return f"var {self.name.lexeme}{" = " + repr(self.expr) if self.expr else ''};"

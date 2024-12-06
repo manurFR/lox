@@ -1,9 +1,14 @@
 from typing import Any
+from environment import Environment
+from errors import LoxRuntimeError
 from output import stringify
-from syntax import Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary
+from syntax import Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
 
 
 class Interpreter:
+    def __init__(self) -> None:
+        self.environment = Environment()  # will hold the variables etc.
+
     def execute(self, node: NodeStmt) -> None:
         """Execute a statement
            (ie. a part of the Abstract-Syntax Tree that define a statement and thus has a side-effect at execution but don't return a value;
@@ -16,6 +21,12 @@ class Interpreter:
             case Expression() as stmt:
                 # do not display the value: discard it ; the statement's side-effect is the point
                 value = self.evaluate(stmt.expr)
+
+            case Var() as stmt:
+                value = None
+                if stmt.expr is not None:
+                    value = self.evaluate(stmt.expr)
+                self.environment.define(stmt.name.lexeme, value)
         
             case _:
                 raise NotImplementedError(node)
@@ -79,6 +90,9 @@ class Interpreter:
                     case "BANG_EQUAL":
                         return left != right
                     
+            case Variable() as variable:
+                return self.environment.get(variable.name)
+
             case _:
                 raise NotImplementedError(node)
             
@@ -110,6 +124,3 @@ class Interpreter:
             return
         raise LoxRuntimeError(operator, (left, right), "Operands must be two numbers or two strings.")
 
-
-class LoxRuntimeError(RuntimeError):
-    pass
