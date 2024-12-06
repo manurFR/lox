@@ -109,18 +109,18 @@ class Interpreter:
     def check_is_number(self, operator, value):
         if isinstance(value, float):
             return
-        raise LoxRuntimeError(operator, value, "Operand must be a number.")
+        raise LoxRuntimeError(operator, "Operand must be a number.")
     
 
     def check_both_numbers(self, operator, left, right):
         if isinstance(left, float) and isinstance(right, float):
             return
-        raise LoxRuntimeError(operator, (left, right), "Operands must be numbers.")
+        raise LoxRuntimeError(operator, "Operands must be numbers.")
     
 
     def check_both_numbers_or_strings(self, operator, left, right):
         if ((isinstance(left, float) and isinstance(right, float)) or
             (isinstance(left, str) and isinstance(right, str))):
             return
-        raise LoxRuntimeError(operator, (left, right), "Operands must be two numbers or two strings.")
+        raise LoxRuntimeError(operator, "Operands must be two numbers or two strings.")
 

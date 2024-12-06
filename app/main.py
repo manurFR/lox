@@ -58,7 +58,7 @@ def main():
                 output = interpreter.evaluate(expr)
                 print(stringify(output))
             except LoxRuntimeError as e:
-                operator, value, message = e.args
+                operator, message = e.args
                 print(f"{message}\n[line {operator.line}]", file=sys.stderr)
                 sys.exit(70)
 
@@ -70,8 +70,8 @@ def main():
             try:
                 do_evaluation(statements)
             except LoxRuntimeError as e:
-                operator, value, message = e.args
-                print(f"{message}\n[line {operator.line}]", file=sys.stderr)
+                token, message = e.args
+                print(f"{message}\n[line {token.line}]", file=sys.stderr)
                 sys.exit(70)      
 
 

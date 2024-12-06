@@ -91,7 +91,7 @@ def test_is_truthy(interpreter):
 def test_runtime_errors(interpreter):
     with pytest.raises(LoxRuntimeError) as ex:
         interpreter.evaluate(Unary(MINUS, Literal("fail")))
-    assert ex.value.args == (MINUS, "fail", "Operand must be a number.")
+    assert ex.value.args == (MINUS, "Operand must be a number.")
 
     with pytest.raises(LoxRuntimeError) as ex:
         interpreter.evaluate(Binary(Literal(True), MULTIPLY, Literal(28.0)))

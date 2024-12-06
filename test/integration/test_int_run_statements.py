@@ -29,7 +29,7 @@ worldbazbar
 1
 false""".strip()
 
-    # syntax error
+    # -- syntax error --
     status, output, stderr = run_lox(command="run", lox_source='print "Missing semicolon->"')
     assert status == 65
     assert output == ""
@@ -48,7 +48,7 @@ print !false;
     
     assert output == "true\ntrue"
 
-    # runtime error
+    # -- runtime error --
     source = """
 print "the expression below is invalid";
 49 + "baz";
@@ -60,7 +60,7 @@ print "this should not be printed";""".strip()
     assert output == "the expression below is invalid"
     assert stderr == "Operands must be two numbers or two strings.\n[line 2]"
 
-    # syntax error
+    # -- syntax error --
     status, output, stderr = run_lox(command="run", lox_source='"Missing" + "semicolon->"')
     assert status == 65
     assert output == ""
@@ -83,3 +83,17 @@ print (8*(a + b)) / 202 + (100 - bar); // 8*101/202 + 1
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "foo\n198\n297\n5"
+
+    # -- runtime error --
+    source = """
+print 22;
+var hello = 85;
+var world = 12;
+var result = (hello + bar) / world;
+""".strip()
+    status, output, stderr = run_lox(command="run", lox_source=source)
+
+    assert output == "22"
+
+    assert status == 70
+    assert stderr == "Undefined variable 'bar'.\n[line 4]"
