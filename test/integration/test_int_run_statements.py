@@ -84,6 +84,14 @@ print (8*(a + b)) / 202 + (100 - bar); // 8*101/202 + 1
 
     assert output == "foo\n198\n297\n5"
 
+    source = """
+var baz = "foo";
+var bar;
+print bar;""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "nil"
+
     # -- runtime error --
     source = """
 print 22;
