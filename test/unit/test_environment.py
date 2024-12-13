@@ -22,6 +22,19 @@ def test_Environment_get():
     assert exc.value.args == (Token("IDENTIFIER", "zzz", None, 4), "Undefined variable 'zzz'.")
 
 
+def test_Environment_get_from_enclosing_or_shadowed():
+    parent = Environment()
+    parent.define("v1", 44.4)
+    parent.define("v2", 100)
+    blockscope = Environment(enclosing=parent)
+    blockscope.define("v1", 11.1)
+    assert blockscope.get(Token("IDENTIFIER", "v1", None, 3)) == 11.1
+    assert blockscope.get(Token("IDENTIFIER", "v2", None, 3)) == 100
+    with pytest.raises(LoxRuntimeError) as exc:
+        blockscope.get(Token("IDENTIFIER", "zzz", None, 4))
+    assert exc.value.args == (Token("IDENTIFIER", "zzz", None, 4), "Undefined variable 'zzz'.")
+
+
 def test_Environment_assign():
     e = Environment()
     e.define("v", None)
@@ -33,3 +46,22 @@ def test_Environment_assign():
     with pytest.raises(LoxRuntimeError) as exc:
         e.assign(Token("IDENTIFIER", "zzz", None, 4), "hello")
     assert exc.value.args == (Token("IDENTIFIER", "zzz", None, 4), "Undefined variable 'zzz'.")
+
+
+def test_Environment_assign_to_enclosing_or_shadowed():
+    parent = Environment()
+    parent.define("v1", 44.4)
+    v1_token = Token("IDENTIFIER", "v1", None, 1)
+    blockscope = Environment(enclosing=parent)
+    blockscope.define("v2", 100)
+    v2_token = Token("IDENTIFIER", "v2", None, 1)
+    blockscope.assign(v1_token, 11.1)
+    blockscope.assign(v2_token, 200)
+
+    assert blockscope.get(v1_token) == 11.1
+    assert blockscope.get(v2_token) == 200
+    assert parent.get(v1_token) == 11.1
+
+    with pytest.raises(LoxRuntimeError) as exc:
+        parent.assign(v2_token, "hello")
+    assert exc.value.args == (v2_token, "Undefined variable 'v2'.")

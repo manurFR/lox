@@ -141,3 +141,40 @@ def test_run_block_declarations(run_lox):
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at '{': Expected '}' after block."
+
+
+def test_run_block_scopes(run_lox):
+    source = """
+{
+    var bar = "global bar";
+    var quz = "before";
+    {
+        var quz = "after";
+        print quz;
+        print bar;
+    }
+    print quz;
+}
+""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "after\nglobal bar\nbefore"
+
+    # -- runtime errors --
+    source = """
+{
+  var hello = "outer hello";
+  {
+    var hello = "inner hello";
+    print hello;
+  }
+  print hello;
+}
+print hello;
+""".strip()
+    status, output, stderr = run_lox(command="run", lox_source=source)
+
+    assert output == "inner hello\nouter hello"
+
+    assert status == 70
+    assert stderr == "Undefined variable 'hello'.\n[line 9]"

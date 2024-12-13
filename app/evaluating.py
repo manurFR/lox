@@ -29,8 +29,16 @@ class Interpreter:
                 self.environment.define(stmt.name.lexeme, value)
 
             case Block() as block:
-                for stmt in block.statements:
-                    self.execute(stmt)
+                blockscope = Environment(enclosing=self.environment)
+
+                previous_scope = self.environment
+                try:
+                    self.environment = blockscope
+
+                    for stmt in block.statements:
+                        self.execute(stmt)
+                finally:
+                    self.environment = previous_scope
         
             case _:
                 raise NotImplementedError(node)
