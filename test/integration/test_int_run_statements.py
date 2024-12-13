@@ -119,3 +119,25 @@ print hello;
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "3144\n3144"
+
+
+def test_run_block_declarations(run_lox):
+    source = """
+{
+    var foo = "before";
+    print foo;
+}
+{
+    var foo = "after";
+    print foo;
+}
+""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "before\nafter"
+
+    # -- syntax error --
+    status, output, stderr = run_lox(command="run", lox_source="{print 12.345;")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at '{': Expected '}' after block."

@@ -100,3 +100,11 @@ class Var(NodeStmt):
 
     def __repr__(self) -> str:
         return f"var {self.name.lexeme}{" = " + repr(self.expr) if self.expr else ''};"
+    
+
+@dataclass
+class Block(NodeStmt):
+    statements: list[NodeStmt]
+
+    def __repr__(self) -> str:
+        return "{" + "\n".join(repr(stmt) for stmt in self.statements) + "}"

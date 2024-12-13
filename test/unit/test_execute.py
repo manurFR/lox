@@ -1,7 +1,7 @@
 import pytest
 
 from scanning import Token
-from syntax import Print, Expression, Binary, Literal, Var, Variable # type: ignore
+from syntax import Block, Print, Expression, Binary, Literal, Var, Variable # type: ignore
 from evaluating import Interpreter # type: ignore
 from tokens import PLUS
 
@@ -25,4 +25,13 @@ def test_execute_variable_declaration(interpreter, capsys):
     a = Token("IDENTIFIER", "a", None, 1)
     interpreter.execute(Var(a, Literal(3.14)))
     interpreter.execute(Print(Variable(a)))
+    assert capsys.readouterr()[0] == "3.14\n"
+
+
+def test_execute_statements_in_block(interpreter, capsys):
+    a = Token("IDENTIFIER", "a", None, 1)
+    interpreter.execute(Block([
+        Var(a, Literal(3.14)),
+        Print(Variable(a))
+    ]))
     assert capsys.readouterr()[0] == "3.14\n"

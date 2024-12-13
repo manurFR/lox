@@ -1,4 +1,6 @@
-76 - 67 >= -33 * 2 / 33 + 61;
-false == false;
-("world" == "bar") == ("foo" != "baz");
-print false;
+{
+    var bar = 11;
+    var world = 11;
+    {
+        print bar + world;
+}

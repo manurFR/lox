@@ -1,5 +1,5 @@
 from scanning import Token  # type: ignore
-from syntax import Assign, Binary, Expression, Grouping, Literal, Print, Unary, Var, Variable # type: ignore
+from syntax import Assign, Binary, Block, Expression, Grouping, Literal, Print, Unary, Var, Variable # type: ignore
 from tokens import MINUS, MULTIPLY, NOT
 
 
@@ -45,3 +45,9 @@ def test_Print_repr():
 def test_Var_repr():
     assert repr(Var(Token("IDENTIFIER", "pi", None, 1), Literal(3.14))) == "var pi = 3.14;"
     assert repr(Var(Token("IDENTIFIER", "area", None, 1), None)) == "var area;"
+
+
+def test_Block_repr():
+    assert repr(Block([])) == "{}"
+    assert repr(Block([Var(Token("IDENTIFIER", "word", None, 1), Literal("test")), 
+                       Print(Variable(Token("IDENTIFIER", "word", None, 1)))])) == "{var word = test;\nprint word;}"

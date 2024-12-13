@@ -2,7 +2,7 @@ from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
 from output import stringify
-from syntax import Assign, Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
+from syntax import Assign, Block, Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
 
 
 class Interpreter:
@@ -27,6 +27,10 @@ class Interpreter:
                 if stmt.expr is not None:
                     value = self.evaluate(stmt.expr)
                 self.environment.define(stmt.name.lexeme, value)
+
+            case Block() as block:
+                for stmt in block.statements:
+                    self.execute(stmt)
         
             case _:
                 raise NotImplementedError(node)

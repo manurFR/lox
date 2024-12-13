@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Expression, Grouping, Literal, NodeStmt, Print, Unary, Var, Variable
+from syntax import Assign, Binary, Block, Expression, Grouping, Literal, NodeStmt, Print, Unary, Var, Variable
 
 
 class Parser:
@@ -34,7 +34,10 @@ class Parser:
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
     statement      → exprStmt
-                    | printStmt ;
+                    | printStmt
+                    | block ;
+
+    block          → "{" declaration* "}" ;
 
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
@@ -70,6 +73,8 @@ class Parser:
         """ statement      → exprStmt | printStmt ; """
         if self.match("PRINT"):
             return self.print_statement()
+        if self.match("LEFT_BRACE"):
+            return Block(self.block())
         
         # If it's not a statement, it MUST be an expression
         return self.expression_statement()
@@ -107,6 +112,18 @@ class Parser:
         if not self.match("SEMICOLON"):
             raise self.error(currtok, "Expected ';' after variable declaration.")
         return Var(name, expr=initializer)
+    
+    def block(self):
+        currtok = self.previous_token()  # '{'
+        statements = []
+
+        while not self.is_at_end() and self.peek().toktype != "RIGHT_BRACE":
+            statements.append(self.declaration())
+
+        if not self.match("RIGHT_BRACE"):
+            raise self.error(currtok, "Expected '}' after block.")
+        
+        return statements
         
     # Expression parsing
 
