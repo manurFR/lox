@@ -9,7 +9,7 @@ class Parser:
         self.current = 0
         # lenient mode allows expressions without ending ';' to compile and returns their value
         #  ...it's the magic that allow commands 'parse' and 'evaluate' to still work
-        self.strict = not lenient
+        self.lenient = lenient
 
     def parse(self) -> list[NodeStmt]:
         statements = []
@@ -106,7 +106,7 @@ class Parser:
         """ printStmt      → "print" expression ";" ; """
         currtok = self.previous_token()  # PRINT token
         value = self.expression()
-        if not self.match("SEMICOLON"):
+        if not (self.match("SEMICOLON") or self.lenient):
             raise self.error(currtok, "Expected ';' after value.")
         return Print(value)
 
@@ -115,7 +115,7 @@ class Parser:
         # Expressions with side effect
         currtok = self.peek()
         value = self.expression()
-        if self.strict and not self.match("SEMICOLON"):
+        if not (self.match("SEMICOLON") or self.lenient):
             raise self.error(currtok, "Expected ';' after expression.")
         return Expression(value)
     
@@ -130,7 +130,7 @@ class Parser:
         if self.match("EQUAL"):
             initializer = self.expression()
 
-        if not self.match("SEMICOLON"):
+        if not (self.match("SEMICOLON") or self.lenient):
             raise self.error(currtok, "Expected ';' after variable declaration.")
         return Var(name, expr=initializer)
     

@@ -1,126 +1,115 @@
-from pprint import pprint
 import sys
 
 from output import stringify
 from errors import Errors, LoxRuntimeError
-from scanning import Token, tokenize
+from scanning import tokenize
 from parsing import Parser
 from evaluating import Interpreter
-from syntax import Expression, NodeStmt
+from syntax import Expression
 
 AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate', 'run', 'repl']
 
 
+def usage(exitcode=0, msg=None):
+    if msg:
+        print(msg, file=sys.stderr)
+    print(f"Usage: ./lox.sh [{{{'|'.join(AVAILABLE_COMMANDS)}}} [<filename>]]", file=sys.stderr)
+    exit(exitcode)
+
+
+def process(interpreter: Interpreter, command: str, source: str, exit_on_errors: bool = True):
+    # scanning/tokenizing
+    tokens, errs = tokenize(source)
+    for line, message in errs:
+        Errors.report(line, message)
+    
+    if command == "tokenize":
+        for tok in tokens:
+            print(tok)
+        check_errors()
+        exit(0)
+
+    # parsing (only 'run' requires semicolon at the end of expressions, ie. all others are lenient)
+    parser = Parser(tokens, lenient=(command != 'run'))
+    statements = parser.parse()
+
+    if command == "parse":
+        if statements:
+            print(statements[0])
+        check_errors()
+        exit(0)
+
+    # exit if syntax errors before evaluating
+    if exit_on_errors:
+        check_errors()
+
+    # evaluating/executing
+    try:
+        # feed each statement to the interpreter one by one, keeping the common state up-to-date
+        for stmt in statements:
+
+            # shortcut to quick evaluation of expressions
+            if (command in ["evaluate", "repl"]) and isinstance(stmt, Expression):
+                output = interpreter.evaluate(stmt.expr)
+                print(stringify(output))
+
+                if command == "evaluate":
+                    exit(0)
+            
+            # full execution of a statement
+            else:
+                interpreter.execute(stmt)
+
+    except LoxRuntimeError as e:
+        operator, message = e.args
+        print(f"{message}\n[line {operator.line}]", file=sys.stderr)
+        if exit_on_errors:
+            exit(70)
+
+
 def main():
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    # print("Logs from your program will appear here!", file=sys.stderr)
+    # arguments
+    if len(sys.argv) <= 1:
+        command = "repl"
+    else:
+        command = sys.argv[1]
 
-    if len(sys.argv) < 2:
-        print("Usage: ./your_program.sh {tokenize|parse|evaluate|run|repl} [<filename>]", file=sys.stderr)
-        exit(1)
-
-    command = sys.argv[1]
-    if len(sys.argv) == 3:
-        filename = sys.argv[2]
+    if command in ("help", "-h"):
+        usage(exitcode=0)
 
     if command not in AVAILABLE_COMMANDS:
-        print(f"Unknown command: {command}", file=sys.stderr)
-        exit(1)
+        usage(exitcode=1, msg=f"Unknown command: {command}")
 
-    if command != 'repl':
+    if command != "repl":
+        if len(sys.argv) < 3:
+            usage(exitcode=1)
+
+        filename = sys.argv[2]
         with open(filename) as file:
             file_contents = file.read()
 
-    match command:
-        case "tokenize":
-            tokens = do_tokenize(file_contents)
-            for tok in tokens:
-                print(tok)
-            check_errors()
-                
-        case "parse":
-            tokens = do_tokenize(file_contents)
-            check_errors()
-            expressions = do_parse(tokens, lenient=True)
-            if expressions:
-                print(expressions[0])
-            check_errors()
-
-        case "evaluate":
-            tokens = do_tokenize(file_contents)
-            check_errors()
-            # 'evaluate' implies one expression only in the source file, for now
-            expressions = do_parse(tokens, lenient=True)
-            check_errors()
-            if not isinstance(expressions[0], Expression):
-                print("Command 'evaluate' expected a single expression.")
-                sys.exit(70)
-            expr = expressions[0].expr
-            try:
-                interpreter = Interpreter()
-                output = interpreter.evaluate(expr)
-                print(stringify(output))
-            except LoxRuntimeError as e:
-                operator, message = e.args
-                print(f"{message}\n[line {operator.line}]", file=sys.stderr)
-                sys.exit(70)
-
-        case "run":
-            tokens = do_tokenize(file_contents)
-            check_errors()
-            statements = do_parse(tokens)
-            check_errors()
-            try:
-                do_evaluation(statements)
-            except LoxRuntimeError as e:
-                token, message = e.args
-                print(f"{message}\n[line {token.line}]", file=sys.stderr)
-                sys.exit(70)
-
-        case "repl":
-            interpreter = Interpreter()
-            print("Welcome to Lox REPL")
-            try:
-                while line := input(">>> "):
-                    if line.strip().lower() in ('exit', 'quit'):
-                        raise EOFError
-                    tokens = do_tokenize(line.strip())
-                    statements = do_parse(tokens)
-                    try:
-                        for stmt in statements:
-                            interpreter.execute(stmt)
-                    except LoxRuntimeError as e:
-                        token, message = e.args
-                        print(f"{message}\n[line {token.line}]", file=sys.stderr)
-            except EOFError:
-                print()
-                print("Bye.")
-                sys.exit(0)
-
-def do_tokenize(content) -> list[Token]:
-    tokens, errs = tokenize(content)
-    for line, message in errs:
-        Errors.report(line, message)
-    return tokens
-
-
-def do_parse(tokens, lenient=False) -> list[NodeStmt]:
-    parser = Parser(tokens, lenient)
-    return parser.parse()
-
-
-def do_evaluation(statements: list[NodeStmt]):
+    # scanner/parser/interpreter
     interpreter = Interpreter()
-    # feed each statement to the interpreter one by one, keeping the common state up-to-date
-    for stmt in statements:
-        # each statement is an Abstract-Syntax Tree
-        interpreter.execute(stmt)
+
+    if command == "repl":
+        print("Welcome to Lox REPL")
+        try:
+            while line := input(">>> "):
+                if line.strip().lower() in ('exit', 'quit'):
+                    raise EOFError("quit")
+                process(interpreter, command, line.strip(), exit_on_errors=False)
+        except EOFError as eof:
+            if not eof.args:
+                print()
+            print("Bye.")
+            sys.exit(0)
+    else:
+        process(interpreter, command, file_contents)
 
 
 def check_errors():
     if Errors.had_errors:
         sys.exit(65)
-
 
 
 if __name__ == "__main__":
