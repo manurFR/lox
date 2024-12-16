@@ -41,3 +41,7 @@ print stage;
 """.strip()
     _, output, _ = run_lox(command="run", lox_source=source)
     assert output == "senior"
+
+    # nested ifs
+    _, output, _ = run_lox(command="run", lox_source='if (true) if (false) print "world"; else print "baz";')
+    assert output == "baz"
