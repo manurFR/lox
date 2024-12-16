@@ -1,3 +1,4 @@
+from pprint import pprint
 import sys
 
 from output import stringify
@@ -7,26 +8,28 @@ from parsing import Parser
 from evaluating import Interpreter
 from syntax import Expression, NodeStmt
 
-AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate', 'run']
+AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate', 'run', 'repl']
 
 
 def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     # print("Logs from your program will appear here!", file=sys.stderr)
 
-    if len(sys.argv) < 3:
-        print("Usage: ./your_program.sh {tokenize|parse} <filename>", file=sys.stderr)
+    if len(sys.argv) < 2:
+        print("Usage: ./your_program.sh {tokenize|parse|evaluate|run|repl} [<filename>]", file=sys.stderr)
         exit(1)
 
     command = sys.argv[1]
-    filename = sys.argv[2]
+    if len(sys.argv) == 3:
+        filename = sys.argv[2]
 
     if command not in AVAILABLE_COMMANDS:
         print(f"Unknown command: {command}", file=sys.stderr)
         exit(1)
 
-    with open(filename) as file:
-        file_contents = file.read()
+    if command != 'repl':
+        with open(filename) as file:
+            file_contents = file.read()
 
     match command:
         case "tokenize":
@@ -72,8 +75,27 @@ def main():
             except LoxRuntimeError as e:
                 token, message = e.args
                 print(f"{message}\n[line {token.line}]", file=sys.stderr)
-                sys.exit(70)      
+                sys.exit(70)
 
+        case "repl":
+            interpreter = Interpreter()
+            print("Welcome to Lox REPL")
+            try:
+                while line := input(">>> "):
+                    if line.strip().lower() in ('exit', 'quit'):
+                        raise EOFError
+                    tokens = do_tokenize(line.strip())
+                    statements = do_parse(tokens)
+                    try:
+                        for stmt in statements:
+                            interpreter.execute(stmt)
+                    except LoxRuntimeError as e:
+                        token, message = e.args
+                        print(f"{message}\n[line {token.line}]", file=sys.stderr)
+            except EOFError:
+                print()
+                print("Bye.")
+                sys.exit(0)
 
 def do_tokenize(content) -> list[Token]:
     tokens, errs = tokenize(content)

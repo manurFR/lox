@@ -85,6 +85,17 @@ class Expression(NodeStmt):
     
 
 @dataclass
+class If(NodeStmt):
+    condition: NodeExpr
+    then_stmt: NodeStmt
+    else_stmt: Optional[NodeStmt]
+
+    def __repr__(self) -> str:
+        return (f"if ({self.condition}) then {repr(self.then_stmt)}" +
+                (f" else {self.else_stmt}" if self.else_stmt is not None else ""))
+    
+
+@dataclass
 class Print(NodeStmt):
     expr: NodeExpr
 

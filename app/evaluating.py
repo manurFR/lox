@@ -2,7 +2,7 @@ from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
 from output import stringify
-from syntax import Assign, Block, Expression, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
+from syntax import Assign, Block, Expression, If, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
 
 
 class Interpreter:
@@ -14,6 +14,10 @@ class Interpreter:
            (ie. a part of the Abstract-Syntax Tree that define a statement and thus has a side-effect at execution but don't return a value;
             this includes the root statement of the program; this also implies calling self.evaluate() when a expression is fed to the statement)"""
         match node:
+            case If() as stmt:
+                if self.is_truthy(self.evaluate(stmt.condition)):
+                    self.execute(stmt.then_stmt)
+
             case Print() as stmt:
                 value = self.evaluate(stmt.expr)
                 print(stringify(value))

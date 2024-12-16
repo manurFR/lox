@@ -1,7 +1,7 @@
 import pytest
 
 from scanning import Token
-from syntax import Block, Print, Expression, Binary, Literal, Var, Variable # type: ignore
+from syntax import Block, If, Print, Expression, Binary, Literal, Var, Variable # type: ignore
 from evaluating import Interpreter # type: ignore
 from tokens import PLUS
 
@@ -9,6 +9,11 @@ from tokens import PLUS
 @pytest.fixture
 def interpreter():
     return Interpreter()
+
+
+def test_execute_if(interpreter, capsys):
+    interpreter.execute(If(Literal(True), Print(Literal("ja")), Print(Literal("nein"))))
+    assert capsys.readouterr()[0] == "ja\n"
 
 
 def test_execute_print(interpreter, capsys):

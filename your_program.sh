@@ -12,4 +12,4 @@ set -e # Exit early if any commands fail
 #
 # - Edit this to change how your program runs locally
 # - Edit .codecrafters/run.sh to change how your program runs remotely
-PYTHONPATH=app pipenv run python3 -m main "$@"
+PIPENV_VERBOSITY=-1 PYTHONPATH=app pipenv run python3 -m main "$@"

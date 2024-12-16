@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Block, Expression, Grouping, Literal, NodeStmt, Print, Unary, Var, Variable
+from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, NodeStmt, Print, Unary, Var, Variable
 
 
 class Parser:
@@ -34,8 +34,12 @@ class Parser:
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
     statement      → exprStmt
+                    | ifStmt
                     | printStmt
                     | block ;
+
+    ifStmt         → "if" "(" expression ")" statement
+                    ( "else" statement )? ;
 
     block          → "{" declaration* "}" ;
 
@@ -70,7 +74,9 @@ class Parser:
         return self.statement()
 
     def statement(self):
-        """ statement      → exprStmt | printStmt ; """
+        """ statement      → exprStmt | ifStmt | printStmt | block ; """
+        if self.match("IF"):
+            return self.if_statement()
         if self.match("PRINT"):
             return self.print_statement()
         if self.match("LEFT_BRACE"):
@@ -80,6 +86,19 @@ class Parser:
         return self.expression_statement()
         
     # Statement parsing
+
+    def if_statement(self):
+        currtok = self.previous_token()  # IF token
+        if not self.match("LEFT_PAREN"):
+            raise self.error(currtok, "Expected '(' after 'if'.")
+        condition = self.expression()
+        if not self.match("RIGHT_PAREN"):
+            raise self.error(currtok, "Expected ')' after if condition.")
+        
+        then_stmt = self.statement()
+        else_stmt = None
+        
+        return If(condition, then_stmt, else_stmt)
 
     def print_statement(self):
         """ printStmt      → "print" expression ";" ; """

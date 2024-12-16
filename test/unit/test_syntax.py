@@ -1,6 +1,6 @@
 from scanning import Token  # type: ignore
-from syntax import Assign, Binary, Block, Expression, Grouping, Literal, Print, Unary, Var, Variable # type: ignore
-from tokens import MINUS, MULTIPLY, NOT
+from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Print, Unary, Var, Variable # type: ignore
+from tokens import GREATER, MINUS, MULTIPLY, NOT
 
 
 # Expression classes
@@ -36,6 +36,13 @@ def test_Assign_repr():
 # Statement classes
 def test_Expression_repr():
     assert repr(Expression(Unary(MINUS, Literal(5.5)))) == "(- 5.5)"
+
+
+def test_If_repr():
+    assert repr(If(Binary(Literal(9.0), GREATER, Binary(Literal(3.5), MULTIPLY, Literal(2.5))), Print(Literal("Greater")), None)) == \
+        "if ((> 9.0 (* 3.5 2.5))) then print greater;"
+    assert repr(If(Literal(False), Print(Literal("it's wrong")), Print(Literal("it's true")))) == \
+        "if (false) then print it's wrong; else print it's true;"
 
 
 def test_Print_repr():
