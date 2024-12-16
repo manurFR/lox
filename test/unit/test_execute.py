@@ -16,6 +16,11 @@ def test_execute_if(interpreter, capsys):
     assert capsys.readouterr()[0] == "ja\n"
 
 
+def test_execute_else(interpreter, capsys):
+    interpreter.execute(If(Literal(False), Print(Literal("ja")), Print(Literal("nein"))))
+    assert capsys.readouterr()[0] == "nein\n"
+
+
 def test_execute_print(interpreter, capsys):
     interpreter.execute(Print(Binary(Literal(2.2), PLUS, Literal(3.3))))
     assert capsys.readouterr()[0] == "5.5\n"

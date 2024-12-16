@@ -21,10 +21,10 @@ if (!isAdult) { print "eligible for voting: false"; }
     assert output == "true"
 
     # else
-#     source = """
-# var a = 5;
-# if (a < 3) print "less than 3";
-# else print "more than 3";
-# """.strip()
-#     _, output, _ = run_lox(command="run", lox_source=source)
-#     assert output == "more than 3"
+    source = """
+var a = 5;
+if (a < 3) print "less than 3";
+else print "more than 3";
+""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+    assert output == "more than 3"

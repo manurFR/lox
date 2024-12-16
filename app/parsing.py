@@ -97,6 +97,8 @@ class Parser:
         
         then_stmt = self.statement()
         else_stmt = None
+        if self.match("ELSE"):
+            else_stmt = self.statement()
         
         return If(condition, then_stmt, else_stmt)
 

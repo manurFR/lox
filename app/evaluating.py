@@ -17,6 +17,8 @@ class Interpreter:
             case If() as stmt:
                 if self.is_truthy(self.evaluate(stmt.condition)):
                     self.execute(stmt.then_stmt)
+                elif stmt.else_stmt:
+                    self.execute(stmt.else_stmt)
 
             case Print() as stmt:
                 value = self.evaluate(stmt.expr)
