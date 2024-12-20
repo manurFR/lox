@@ -1,6 +1,6 @@
 from scanning import Token  # type: ignore
-from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Logical, Print, Unary, Var, Variable # type: ignore
-from tokens import AND, GREATER, MINUS, MULTIPLY, NOT, OR
+from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Logical, Print, Unary, Var, Variable, While # type: ignore
+from tokens import AND, GREATER, LESS, MINUS, MULTIPLY, NOT, OR, PLUS
 
 
 # Expression classes
@@ -58,6 +58,13 @@ def test_Print_repr():
 def test_Var_repr():
     assert repr(Var(Token("IDENTIFIER", "pi", None, 1), Literal(3.14))) == "var pi = 3.14;"
     assert repr(Var(Token("IDENTIFIER", "area", None, 1), None)) == "var area;"
+
+
+def test_While_repr():
+    a = Token("IDENTIFIER", "a", None, 1)
+    assert repr(While(Binary(Variable(a), LESS, Literal(10.0)), 
+                      Print(Assign(a, Binary(Variable(a), PLUS, Literal(1.0)))))) == \
+                        "while ((< a 10.0)) print a = (+ a 1.0);"
 
 
 def test_Block_repr():

@@ -47,7 +47,7 @@ print stage;
     assert output == "baz"
 
 
-def test_run_logical_operators(run_lox):
+def test_logical_operators(run_lox):
     source = """
 print 41 or true;
 print false or 41;
@@ -71,3 +71,23 @@ print true or true and false;
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "false\nyes\ntrue"
+
+
+def test_while_statement(run_lox):
+    source = """
+while (false) {
+  print "should not print";
+}
+var product = 1;
+var i = 1;
+while (i <= 5) {
+  product = product * i;
+  i = i + 1;
+}
+print product;
+var foo = 0;
+while (foo < 3) print foo = foo + 1;
+"""
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "120\n1\n2\n3"

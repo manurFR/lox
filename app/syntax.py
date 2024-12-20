@@ -121,7 +121,16 @@ class Var(NodeStmt):
 
     def __repr__(self) -> str:
         return f"var {self.name.lexeme}{" = " + repr(self.expr) if self.expr else ''};"
-    
+
+
+@dataclass
+class While(NodeStmt):
+    condition: NodeExpr
+    body: NodeStmt
+
+    def __repr__(self) -> str:
+        return f"while ({self.condition}) {self.body}"
+        
 
 @dataclass
 class Block(NodeStmt):

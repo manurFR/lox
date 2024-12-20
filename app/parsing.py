@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Logical, NodeStmt, Print, Unary, Var, Variable
+from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Logical, NodeStmt, Print, Unary, Var, Variable, While
 
 
 class Parser:
@@ -36,7 +36,10 @@ class Parser:
     statement      → exprStmt
                     | ifStmt
                     | printStmt
+                    | whileStmt
                     | block ;
+
+    whileStmt      → "while" "(" expression ")" statement ;
 
     ifStmt         → "if" "(" expression ")" statement
                     ( "else" statement )? ;
@@ -76,11 +79,13 @@ class Parser:
         return self.statement()
 
     def statement(self):
-        """ statement      → exprStmt | ifStmt | printStmt | block ; """
+        """ statement      → exprStmt | ifStmt | printStmt | whileStmt | block ; """
         if self.match("IF"):
             return self.if_statement()
         if self.match("PRINT"):
             return self.print_statement()
+        if self.match("WHILE"):
+            return self.while_statement()
         if self.match("LEFT_BRACE"):
             return Block(self.block())
         
@@ -111,6 +116,17 @@ class Parser:
         if not (self.match("SEMICOLON") or self.lenient):
             raise self.error(currtok, "Expected ';' after value.")
         return Print(value)
+    
+    def while_statement(self):
+        """ whileStmt      → "while" "(" expression ")" statement ; """
+        currtok = self.previous_token()  # WHILE token
+        if not self.match("LEFT_PAREN"):
+            raise self.error(currtok, "Expected '(' after 'while'.")
+        condition = self.expression()
+        if not self.match("RIGHT_PAREN"):
+            raise self.error(currtok, "Expected ')' after condition.")
+        body = self.statement()
+        return While(condition, body)
 
     def expression_statement(self):
         """ exprStmt       → expression ";" ; """

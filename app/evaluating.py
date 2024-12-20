@@ -2,7 +2,7 @@ from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
 from output import stringify
-from syntax import Assign, Block, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
+from syntax import Assign, Block, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
 
 
 class Interpreter:
@@ -23,6 +23,10 @@ class Interpreter:
             case Print() as stmt:
                 value = self.evaluate(stmt.expr)
                 print(stringify(value))
+
+            case While() as stmt:
+                while(self.is_truthy(self.evaluate(stmt.condition))):
+                    self.execute(stmt.body)
         
             case Expression() as stmt:
                 # do not display the value: discard it ; the statement's side-effect is the point
