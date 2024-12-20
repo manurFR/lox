@@ -45,3 +45,20 @@ print stage;
     # nested ifs
     _, output, _ = run_lox(command="run", lox_source='if (true) if (false) print "world"; else print "baz";')
     assert output == "baz"
+
+
+def test_run_logical_operators(run_lox):
+    source = """
+print 41 or true;
+print false or 41;
+print false or false or true;
+print false or false;
+var a = "hello";
+var b = "hello";
+(a = false) or (b = true) or (a = "hello");
+print a;
+print b;
+""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "41\n41\ntrue\nfalse\nfalse\ntrue"

@@ -2,7 +2,7 @@ from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
 from output import stringify
-from syntax import Assign, Block, Expression, If, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
+from syntax import Assign, Block, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable
 
 
 class Interpreter:
@@ -107,6 +107,16 @@ class Interpreter:
                         return left == right
                     case "BANG_EQUAL":
                         return left != right
+                    
+            case Logical() as logical:
+                left = self.evaluate(logical.left)
+
+                # short-circuit ?
+                if logical.operator.toktype == "OR":
+                    if self.is_truthy(left):
+                        return left
+                    
+                return self.evaluate(logical.right)
                     
             case Variable() as variable:
                 return self.environment.get(variable.name)

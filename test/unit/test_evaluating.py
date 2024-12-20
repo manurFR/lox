@@ -2,8 +2,8 @@ import pytest
 from errors import LoxRuntimeError
 from evaluating import Interpreter  # type: ignore
 from scanning import Token
-from syntax import Assign, Literal, Grouping, Unary, Binary, Var, Variable  # type: ignore
-from tokens import DIVISE, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, MULTIPLY, NOT, NOT_EQUAL, PLUS
+from syntax import Assign, Literal, Grouping, Logical, Unary, Binary, Var, Variable  # type: ignore
+from tokens import DIVISE, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, MULTIPLY, NOT, NOT_EQUAL, OR, PLUS
 
 @pytest.fixture
 def interpreter():
@@ -77,6 +77,11 @@ def test_evaluate_equality_operators(interpreter):
     assert interpreter.evaluate(Binary(Literal(None), NOT_EQUAL, Literal(False))) is True
     assert interpreter.evaluate(Binary(Literal(12.0), NOT_EQUAL, Literal("12"))) is True
     assert interpreter.evaluate(Binary(Literal(12.0), NOT_EQUAL, Binary(Literal(4.0), MULTIPLY, Literal(3.0)))) is False
+
+
+def test_evaluate_logical_operators(interpreter):
+    assert interpreter.evaluate(Logical(Literal(True), OR, Literal(12.3))) == True
+    assert interpreter.evaluate(Logical(Literal(False), OR, Literal(12.3))) == 12.3
 
 
 def test_evaluate_variable_reading(interpreter):

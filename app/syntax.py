@@ -44,6 +44,16 @@ class Literal(NodeExpr):
     
 
 @dataclass
+class Logical(NodeExpr):
+    left: NodeExpr
+    operator: 'Token'  # type: ignore
+    right: NodeExpr
+
+    def __repr__(self) -> str:
+        return f"{self.left} {self.operator.lexeme} {self.right}"
+    
+
+@dataclass
 class Grouping(NodeExpr):
     expr: NodeExpr
 

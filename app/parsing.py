@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, NodeStmt, Print, Unary, Var, Variable
+from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Logical, NodeStmt, Print, Unary, Var, Variable
 
 
 class Parser:
@@ -48,7 +48,9 @@ class Parser:
 
     expression     → assignment ;
     assignment     → IDENTIFIER "=" assignment
-                    | equality ;
+                    | logic_or ;
+    logic_or       → logic_and ( "or" logic_and )* ;
+    logic_and      → equality ( "and" equality )* ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -160,7 +162,7 @@ class Parser:
         # So we will parse the first tokens as an expression, and convert that to the left-hand
         #  side of an assignment, ie. a token, only if we meet an equal sign afterwards.
         # Otherwise we will return the expression... as an expression.
-        expr = self.equality()
+        expr = self.logic_or()
 
         if self.match("EQUAL"):  # it's an assignment, not a right-side expression
             currtok = self.previous_token()  # '=' token
@@ -174,6 +176,18 @@ class Parser:
 
         # It wasn't an assignment, go on parsing it as an expression
         return expr
+    
+
+    def logic_or(self):
+        expr = self.equality()
+
+        while self.match("OR"):
+            operator = self.previous_token()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
+
+        return expr
+
     
     def equality(self):
         """ equality       → comparison ( ( "!=" | "==" ) comparison )* ; """

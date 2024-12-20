@@ -1,6 +1,6 @@
 from scanning import Token  # type: ignore
-from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Print, Unary, Var, Variable # type: ignore
-from tokens import GREATER, MINUS, MULTIPLY, NOT
+from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Logical, Print, Unary, Var, Variable # type: ignore
+from tokens import AND, GREATER, MINUS, MULTIPLY, NOT, OR
 
 
 # Expression classes
@@ -24,6 +24,12 @@ def test_Literal_repr():
     assert repr(Literal(None)) == "nil"
     assert repr(Literal("test")) == "test"
     assert repr(Literal(12.34)) == "12.34"
+
+
+def test_Logical_repr():
+    assert repr(Logical(Literal(False), OR, Literal("hello"))) == "false or hello"
+    assert repr(Logical(Binary(Literal(6.3), GREATER, Literal(2.9)), AND, Literal(True))) == "(> 6.3 2.9) and true"
+
 
 def test_Variable_repr():
     assert repr(Variable(Token("IDENTIFIER", "count", None, 1))) == "count"

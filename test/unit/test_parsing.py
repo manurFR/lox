@@ -2,7 +2,8 @@ import pytest
 import re
 from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError  # type: ignore
 from scanning import Token
-from syntax import Assign, Variable  # type: ignore
+from syntax import Assign, Logical, Variable
+from tokens import DIVISE, LESS_EQUAL, MINUS, NOT_EQUAL, OR, PLUS
 
 TOKEN_PATTERN = re.compile(r'(\w+) (".*"|.*) (null|.+)')
 
@@ -38,17 +39,17 @@ TOKENS = _text2tokens("""
                       """)
 LAST = len(TOKENS) - 1
 
-NOT_EQUAL = _parse_token("BANG_EQUAL != null")
-LESS_EQUAL = _parse_token("LESS_EQUAL <= null")
-PLUS = _parse_token("PLUS + null")
-MINUS = _parse_token("MINUS - null")
-DIVISE = _parse_token("SLASH / null")
-
 
 def test_Parser_assignment():
     assert Parser(_text2tokens("""IDENTIFIER pi null
                                   EQUAL = null
                                   NUMBER "3.14" 3.14""")).assignment() == Assign(Token("IDENTIFIER", "pi", None, 1), Literal(3.14))
+    
+
+def test_Parser_or():
+    assert Parser(_text2tokens("""FALSE false null
+                                  OR or null
+                                  STRING "hello" hello""")).logic_or() == Logical(Literal(False), OR, Literal("hello"))
 
 
 def test_Parser_equality():
