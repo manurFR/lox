@@ -155,7 +155,7 @@ class Parser:
         return self.assignment()
     
     def assignment(self):
-        """ assignment     → IDENTIFIER "=" assignment | equality ; """
+        """ assignment     → IDENTIFIER "=" assignment | logic_or ; """
         # Assignments (like "a = 3") are tricky because they start as regular expression
         #  (here "a" could mean we want the value of the variable) but the parser can only
         #  understand it is an assignment later, when it encounters the '=' token.
@@ -179,9 +179,22 @@ class Parser:
     
 
     def logic_or(self):
-        expr = self.equality()
+        """ logic_or       → logic_and ( "or" logic_and )* ; """
+        expr = self.logic_and()
 
         while self.match("OR"):
+            operator = self.previous_token()
+            right = self.logic_and()
+            expr = Logical(expr, operator, right)
+
+        return expr
+    
+
+    def logic_and(self):
+        """ logic_and      → equality ( "and" equality )* ; """
+        expr = self.equality()
+
+        while self.match("AND"):
             operator = self.previous_token()
             right = self.equality()
             expr = Logical(expr, operator, right)

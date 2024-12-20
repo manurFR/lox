@@ -62,3 +62,12 @@ print b;
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "41\n41\ntrue\nfalse\nfalse\ntrue"
+
+    source = """
+print false and 41;
+if (true and "hello") print "yes";
+print true or true and false;
+""".strip()
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "false\nyes\ntrue"

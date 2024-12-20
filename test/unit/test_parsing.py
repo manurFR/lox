@@ -3,7 +3,7 @@ import re
 from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError  # type: ignore
 from scanning import Token
 from syntax import Assign, Logical, Variable
-from tokens import DIVISE, LESS_EQUAL, MINUS, NOT_EQUAL, OR, PLUS
+from tokens import AND, DIVISE, LESS_EQUAL, MINUS, NOT_EQUAL, OR, PLUS
 
 TOKEN_PATTERN = re.compile(r'(\w+) (".*"|.*) (null|.+)')
 
@@ -51,6 +51,12 @@ def test_Parser_or():
                                   OR or null
                                   STRING "hello" hello""")).logic_or() == Logical(Literal(False), OR, Literal("hello"))
 
+
+def test_Parser_and():
+    assert Parser(_text2tokens("""TRUE true null
+                                  AND and null
+                                  STRING "hello" hello""")).logic_and() == Logical(Literal(True), AND, Literal("hello"))
+    
 
 def test_Parser_equality():
     assert Parser(_text2tokens("""STRING "yes" yes

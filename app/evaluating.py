@@ -115,6 +115,9 @@ class Interpreter:
                 if logical.operator.toktype == "OR":
                     if self.is_truthy(left):
                         return left
+                elif logical.operator.toktype == "AND":
+                    if not self.is_truthy(left):
+                        return left
                     
                 return self.evaluate(logical.right)
                     
