@@ -105,3 +105,9 @@ print baz;
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "0\n1\n2\nhello"
+
+    # -- syntax error --
+    status, output, stderr = run_lox(command="run", lox_source="for ({}; a < 2; a = a + 1) {}")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at '{': Expected expression."
