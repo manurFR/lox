@@ -46,9 +46,11 @@ STATEMENTS = ["class",
               "var",
               "for",
               "if",
+              "break",
               "while",
               "print",
-              "return"]
+              "return",
+              "continue"]
 
 RESERVED_WORDS = {stmt: stmt.upper() for stmt in STATEMENTS} | {
     'and': "AND",    

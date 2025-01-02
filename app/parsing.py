@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Block, Expression, Grouping, If, Literal, Logical, NodeStmt, Print, Unary, Var, Variable, While
+from syntax import Assign, Binary, Block, AbortLoop, Expression, Grouping, If, Literal, Logical, NodeStmt, Print, Unary, Var, Variable, While
 
 
 class Parser:
@@ -38,6 +38,7 @@ class Parser:
                     | ifStmt
                     | printStmt
                     | whileStmt
+                    | abortLoopStmt
                     | block ;
 
     whileStmt      → "while" "(" expression ")" statement ;
@@ -45,6 +46,8 @@ class Parser:
     forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
                     expression? ";"
                     expression? ")" statement ;
+
+    abortLoopStmt  → ("break" | "continue") ";" ;
 
     ifStmt         → "if" "(" expression ")" statement
                     ( "else" statement )? ;
@@ -93,6 +96,8 @@ class Parser:
             return self.for_statement()
         if self.match("WHILE"):
             return self.while_statement()
+        if self.match(["BREAK", "CONTINUE"]):
+            return self.abort_loop_statement()
         if self.match("LEFT_BRACE"):
             return Block(self.block())
         
@@ -133,7 +138,14 @@ class Parser:
         if not self.match("RIGHT_PAREN"):
             raise self.error(currtok, "Expected ')' after condition.")
         body = self.statement()
-        return While(condition, body)
+        return While(condition, body, increment=None)
+    
+    def abort_loop_statement(self):
+        """ abortLoopStmt  → ("break" | "continue") ";" ; """
+        currtok = self.previous_token()  # BREAK or CONTINUE token
+        if not (self.match("SEMICOLON") or self.lenient):
+            raise self.error(currtok, f"Expected ';' after '{currtok.lexeme}'.")
+        return AbortLoop(currtok)
     
     def for_statement(self):
         """ forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
@@ -181,10 +193,10 @@ class Parser:
 
         body = self.statement()
 
-        if increment:
-            body = Block([body, Expression(increment)])
+        # if increment:
+            # body = Block([body, Expression(increment)])
 
-        body = While(condition, body)
+        body = While(condition, body, increment)
 
         if initializer:
             body = Block([initializer, body])

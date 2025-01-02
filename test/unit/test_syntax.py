@@ -63,8 +63,8 @@ def test_Var_repr():
 def test_While_repr():
     a = Token("IDENTIFIER", "a", None, 1)
     assert repr(While(Binary(Variable(a), LESS, Literal(10.0)), 
-                      Print(Assign(a, Binary(Variable(a), PLUS, Literal(1.0)))))) == \
-                        "while ((< a 10.0)) print a = (+ a 1.0);"
+                      Print(Assign(a, Binary(Variable(a), PLUS, Literal(1.0)))), 
+                      increment=None)) == "while ((< a 10.0)) print a = (+ a 1.0);"
 
 
 def test_Block_repr():

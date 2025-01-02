@@ -61,8 +61,8 @@ def process(interpreter: Interpreter, command: str, source: str, exit_on_errors:
                 interpreter.execute(stmt)
 
     except LoxRuntimeError as e:
-        operator, message = e.args
-        print(f"{message}\n[line {operator.line}]", file=sys.stderr)
+        token, message = e.args
+        print(f"{message}\n[line {token.line}]", file=sys.stderr)
         if exit_on_errors:
             exit(70)
 

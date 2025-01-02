@@ -127,9 +127,18 @@ class Var(NodeStmt):
 class While(NodeStmt):
     condition: NodeExpr
     body: NodeStmt
+    increment: Optional[NodeExpr]  # must be kept here for 'continue' to work in 'for' statements with increment
 
     def __repr__(self) -> str:
         return f"while ({self.condition}) {self.body}"
+    
+
+@dataclass
+class AbortLoop(NodeStmt):
+    token: 'Token' # type: ignore
+
+    def __repr__(self) -> str:
+        return "break;"
         
 
 @dataclass

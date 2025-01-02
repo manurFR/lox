@@ -2,12 +2,13 @@ from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
 from output import stringify
-from syntax import Assign, Block, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
+from syntax import Assign, Block, AbortLoop, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
 
 
 class Interpreter:
     def __init__(self) -> None:
         self.environment = Environment()  # will hold the variables etc.
+        self.in_loop = False
 
     def execute(self, node: NodeStmt) -> None:
         """Execute a statement
@@ -25,8 +26,25 @@ class Interpreter:
                 print(stringify(value))
 
             case While() as stmt:
+                self.in_loop = True
                 while(self.is_truthy(self.evaluate(stmt.condition))):
-                    self.execute(stmt.body)
+                    try:
+                        self.execute(stmt.body)
+                    except BreakException as breaking:
+                        toktype = breaking.args[0]
+                        if toktype == "BREAK":
+                            break
+                        elif toktype == "CONTINUE":
+                            pass  # let's evaluate the increment if it exists before starting the next loop
+                    if stmt.increment:
+                        self.evaluate(stmt.increment)
+                self.in_loop = False
+
+            case AbortLoop() as stmt:
+                if not self.in_loop:
+                    raise LoxRuntimeError(stmt.token, 
+                                          f"Error at '{stmt.token.lexeme}': should only happen in loops (while or for).")
+                raise BreakException(stmt.token.toktype)
         
             case Expression() as stmt:
                 # do not display the value: discard it ; the statement's side-effect is the point
@@ -52,6 +70,7 @@ class Interpreter:
         
             case _:
                 raise NotImplementedError(node)
+
 
     def evaluate(self, node: NodeExpr) -> Any:
         """Evaluate an expression 
@@ -164,3 +183,6 @@ class Interpreter:
             return
         raise LoxRuntimeError(operator, "Operands must be two numbers or two strings.")
 
+
+class BreakException(Exception):
+    pass

@@ -111,3 +111,60 @@ print baz;
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at '{': Expected expression."
+
+
+def test_break_statement(run_lox):
+    source = """
+var a = 1;
+while (a < 10) {
+    print a;
+    if (a == 2) break;
+    a = a + 1;
+}
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "1\n2"
+
+    source = """
+var test = 1;
+while (test < 3) {
+    for (var i = 0; i < 5; i = i + 1) {
+        print i;
+        if (i == 2) {
+            test = test + 1;
+            break;
+        }
+    }
+}
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "0\n1\n2\n0\n1\n2"
+
+    # -- runtime error --
+    status, output, stderr = run_lox(command="run", lox_source="if (true) break;")
+    assert status == 70
+    assert output == ""
+    assert stderr == "Error at 'break': should only happen in loops (while or for).\n[line 1]"
+
+
+def test_continue_statement(run_lox):
+    source = """
+for (var i = 0; i < 5; i = i + 1) {
+    if (i == 2 or i == 3) continue;
+    print i;
+}
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "0\n1\n4"
+
+    # -- runtime error --
+    status, output, stderr = run_lox(command="run", lox_source="continue;")
+    assert status == 70
+    assert output == ""
+    assert stderr == "Error at 'continue': should only happen in loops (while or for).\n[line 1]"
