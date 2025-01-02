@@ -87,7 +87,21 @@ while (i <= 5) {
 print product;
 var foo = 0;
 while (foo < 3) print foo = foo + 1;
-"""
+""".strip()
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "120\n1\n2\n3"
+
+
+def test_for_statement(run_lox):
+    source = """
+var baz = "hello";
+for (var baz = 0; baz < 3; baz = baz + 1) {
+    print baz;
+}
+print baz;
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "0\n1\n2\nhello"

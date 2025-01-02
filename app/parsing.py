@@ -34,12 +34,17 @@ class Parser:
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
     statement      → exprStmt
+                    | forStmt
                     | ifStmt
                     | printStmt
                     | whileStmt
                     | block ;
 
     whileStmt      → "while" "(" expression ")" statement ;
+
+    forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                    expression? ";"
+                    expression? ")" statement ;
 
     ifStmt         → "if" "(" expression ")" statement
                     ( "else" statement )? ;
@@ -84,6 +89,8 @@ class Parser:
             return self.if_statement()
         if self.match("PRINT"):
             return self.print_statement()
+        if self.match("FOR"):
+            return self.for_statement()
         if self.match("WHILE"):
             return self.while_statement()
         if self.match("LEFT_BRACE"):
@@ -127,6 +134,62 @@ class Parser:
             raise self.error(currtok, "Expected ')' after condition.")
         body = self.statement()
         return While(condition, body)
+    
+    def for_statement(self):
+        """ forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                            expression? ";"
+                            expression? ")" statement ;
+            NOTE: 'desugaring' for statements to while statements which already
+                  allow everything the "for" needs
+        """
+        currtok = self.previous_token()  # FOR token
+        if not self.match("LEFT_PAREN"):
+            raise self.error(currtok, "Expected '(' after 'for'.")
+        
+        if self.match("SEMICOLON"):
+            # no initializer
+            initializer = None
+        elif self.match("VAR"):
+            # initializer is a "var <name> [= <value>]" statement
+            initializer = self.var_declaration_statement()
+        else:
+            # initializer must be an expression statement (eg. "a = 0" with "a" already declared previously)
+            initializer = self.expression_statement()
+
+        condition = Literal(True)  # by default, with no condition we always execute the body
+        if not self.peek().toktype == "SEMICOLON":
+            condition = self.expression()
+        if not self.match("SEMICOLON"):
+            raise self.error(currtok, "Expected ';' after loop condition.")
+        
+        increment = None
+        if not self.peek().toktype == "RIGHT_PAREN":
+            increment = self.expression()
+        if not self.match("RIGHT_PAREN"):
+            raise self.error(currtok, "Expected ')' after for clauses.")
+        
+        # desugaring >>
+        #  for (<initializer>; <condition>; <increment>) <body>;
+        # becomes:
+        #  {
+        #    <initializer>;
+        #    while (<condition>) {
+        #      <body>;
+        #      <increment>;
+        #    }
+        #  }
+
+        body = self.statement()
+
+        if increment:
+            body = Block([body, Expression(increment)])
+
+        body = While(condition, body)
+
+        if initializer:
+            body = Block([initializer, body])
+
+        return body
 
     def expression_statement(self):
         """ exprStmt       → expression ";" ; """
