@@ -37,7 +37,7 @@ print test;
     
     _, output, _ = run_lox(command="run", lox_source=source)
 
-    assert output == "5\n10\n<fun test>"
+    assert output == "5\n10\n<fn test>"
 
     # -- syntax errors --
     status, output, stderr = run_lox(command="run", lox_source="fun 3.14() {}")

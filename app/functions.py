@@ -30,7 +30,7 @@ class LoxUserFunction(LoxCallable):
         interpreter.execute_block(self.declaration.body, environment)
 
     def __repr__(self) -> str:
-        return f"<fun {self.declaration.name.lexeme}>"
+        return f"<fn {self.declaration.name.lexeme}>"
         
 
 def register_native_functions(global_environment: Environment):
@@ -45,4 +45,4 @@ class _NativeClock(LoxCallable):
         return time.time()
     
     def __repr__(self) -> str:
-        return f"<fun clock (native)>"
+        return f"<fn clock (native)>"
