@@ -1,5 +1,5 @@
 from scanning import Token  # type: ignore
-from syntax import Assign, Binary, Block, Call, Expression, Grouping, If, Literal, Logical, Print, Unary, Var, Variable, While # type: ignore
+from syntax import Assign, Binary, Block, Call, Expression, Function, Grouping, If, Literal, Logical, Print, Unary, Var, Variable, While # type: ignore
 from tokens import AND, GREATER, LESS, MINUS, MULTIPLY, NOT, OR, PLUS
 
 
@@ -75,3 +75,11 @@ def test_Block_repr():
     assert repr(Block([])) == "{}"
     assert repr(Block([Var(Token("IDENTIFIER", "word", None, 1), Literal("test")), 
                        Print(Variable(Token("IDENTIFIER", "word", None, 1)))])) == "{var word = test;\nprint word;}"
+    
+
+def test_Function_repr():
+    assert repr(Function(name=Token("IDENTIFIER", "add", None, 1),
+                         params=[Token("IDENTIFIER", "a", None, 1), Token("IDENTIFIER", "b", None, 1)],
+                         body=[Print(Binary(Variable(Token("IDENTIFIER", "a", None, 2)), 
+                                            PLUS, 
+                                            Variable(Token("IDENTIFIER", "b", None, 2))))])) == "fun add(a, b) { [print (+ a b);] }"

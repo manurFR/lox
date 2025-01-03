@@ -157,3 +157,13 @@ class Block(NodeStmt):
 
     def __repr__(self) -> str:
         return "{" + "\n".join(repr(stmt) for stmt in self.statements) + "}"
+    
+
+@dataclass
+class Function(NodeStmt):
+    name: 'Token'  # type: ignore
+    params: 'list[Token]'  # type: ignore
+    body: list[NodeStmt]
+
+    def __repr__(self) -> str:
+        return f"fun {self.name.lexeme}({', '.join(p.lexeme for p in self.params)}) {{ {repr(self.body)} }}"

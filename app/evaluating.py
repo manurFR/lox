@@ -1,9 +1,9 @@
 from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
-from functions import LoxCallable, register_native_functions
+from functions import LoxCallable, LoxUserFunction, register_native_functions
 from output import stringify
-from syntax import Assign, Block, AbortLoop, Call, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
+from syntax import Assign, Block, AbortLoop, Call, Expression, Function, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
 
 
 class Interpreter:
@@ -61,18 +61,27 @@ class Interpreter:
 
             case Block() as block:
                 blockscope = Environment(enclosing=self.environment)
+                self.execute_block(block.statements, environment=blockscope)
 
-                previous_scope = self.environment
-                try:
-                    self.environment = blockscope
-
-                    for stmt in block.statements:
-                        self.execute(stmt)
-                finally:
-                    self.environment = previous_scope
+            case Function() as declaration:
+                function = LoxUserFunction(declaration)
+                self.environment.define(declaration.name.lexeme, function)
         
             case _:
                 raise NotImplementedError(node)
+            
+
+    def execute_block(self, statements, environment):
+        """Execute a list of statements with a given environment/scope.
+           Having a separated method for this allows to use it for regular blocks but also for function bodies etc."""
+        previous_scope = self.environment
+        try:
+            self.environment = environment
+
+            for stmt in statements:
+                self.execute(stmt)
+        finally:
+            self.environment = previous_scope
 
 
     def evaluate(self, node: NodeExpr) -> Any:

@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Block, AbortLoop, Call, Expression, Grouping, If, Literal, Logical, NodeExpr, NodeStmt, Print, Unary, Var, Variable, While
+from syntax import Assign, Binary, Block, AbortLoop, Call, Expression, Function, Grouping, If, Literal, Logical, NodeExpr, NodeStmt, Print, Unary, Var, Variable, While
 
 
 class Parser:
@@ -28,7 +28,8 @@ class Parser:
     """
     program        → declaration* EOF ;
 
-    declaration    → varDecl
+    declaration    → funDecl
+                    | varDecl
                     | statement ;
 
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -53,6 +54,10 @@ class Parser:
                     ( "else" statement )? ;
 
     block          → "{" declaration* "}" ;
+
+    funDecl        → "fun" function ;
+    function       → IDENTIFIER "(" parameters? ")" block ;
+    parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
@@ -79,6 +84,8 @@ class Parser:
     def declaration(self):
         """ declaration    → varDecl | statement ; """
         try:
+            if self.match("FUN"):
+                return self.function(kind="function")
             if self.match("VAR"):
                 return self.var_declaration_statement()
         except ParserError as pex:
@@ -240,7 +247,28 @@ class Parser:
             raise self.error(currtok, "Expected '}' after block.")
         
         return statements
+    
+    def function(self, kind):
+        name = self.peek()  # the function name token
+
+        if not self.match("IDENTIFIER"):
+            raise self.error(name, f"Expected {kind} name.")
         
+        if not self.match("LEFT_PAREN"):
+            raise self.error(name, f"Expected '(' after {kind} name.")
+        
+        parameters = []  # TODO
+
+        if not self.match("RIGHT_PAREN"):
+            raise self.error(name, "Expected ')' after parameters.")
+
+        if not self.match("LEFT_BRACE"):
+            raise self.error(name, f"Expected '{{' before {kind} body.")
+        
+        body = self.block()
+
+        return Function(name, parameters, body)
+
     # Expression parsing
 
     def expression(self):
