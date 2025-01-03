@@ -77,6 +77,16 @@ class Assign(NodeExpr):
 
     def __repr__(self) -> str:
         return f"{self.name.lexeme} = {self.value}"
+    
+
+@dataclass
+class Call(NodeExpr):
+    callee: NodeExpr  # the left expression that evaluates to the function to call
+    paren: 'Token'  # type: ignore  # the token for the opening parenthese, for error reporting
+    arguments: list[NodeExpr]
+
+    def __repr__(self) -> str:
+        return f"{self.callee}({', '.join(repr(arg) for arg in self.arguments)})"
 
 
 # Nodes for other statements

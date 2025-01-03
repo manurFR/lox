@@ -1,13 +1,16 @@
 from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
+from functions import LoxCallable, register_native_functions
 from output import stringify
-from syntax import Assign, Block, AbortLoop, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
+from syntax import Assign, Block, AbortLoop, Call, Expression, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
 
 
 class Interpreter:
     def __init__(self) -> None:
-        self.environment = Environment()  # will hold the variables etc.
+        self.globals = Environment()  # always keep a reference to the global environment, for access to the native functions
+        register_native_functions(self.globals)
+        self.environment = self.globals  # the current environment in the stack
         self.in_loop = False
 
     def execute(self, node: NodeStmt) -> None:
@@ -151,6 +154,21 @@ class Interpreter:
                 value = self.evaluate(assignment.value)
                 self.environment.assign(assignment.name, value)
                 return value
+            
+            case Call() as call:
+                # the callee part evaluates to the actual function to be called
+                function = self.evaluate(call.callee)
+
+                if not isinstance(function, LoxCallable):
+                    raise LoxRuntimeError(call.paren, "Can only call functions and classes.")
+
+                arguments = []  # TODO
+
+                if len(arguments) != function.arity():
+                    raise LoxRuntimeError(call.paren, f"Expected {function.arity()} arguments but got {len(arguments)}.")
+
+                return function.call(self, arguments)
+
 
             case _:
                 raise NotImplementedError(node)

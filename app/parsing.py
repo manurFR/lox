@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Block, AbortLoop, Expression, Grouping, If, Literal, Logical, NodeStmt, Print, Unary, Var, Variable, While
+from syntax import Assign, Binary, Block, AbortLoop, Call, Expression, Grouping, If, Literal, Logical, NodeExpr, NodeStmt, Print, Unary, Var, Variable, While
 
 
 class Parser:
@@ -66,12 +66,14 @@ class Parser:
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
     factor         → unary ( ( "/" | "*" ) unary )* ;
-    unary          → ( "!" | "-" ) unary
-                    | primary ;
+    unary          → ( "!" | "-" ) unary | call ;
+    call           → primary ( "(" arguments? ")" )* ;
     primary        → "true" | "false" | "nil"
                     | NUMBER | STRING
                     | "(" expression ")"
                     | IDENTIFIER ;
+    
+    arguments      → expression ( "," expression )* ;
     """
 
     def declaration(self):
@@ -338,15 +340,24 @@ class Parser:
         return expr
     
     def unary(self):
-        """
-        unary          → ( "!" | "-" ) unary
-                        | primary ;
-        """
+        """ unary          → ( "!" | "-" ) unary | call ; """
         if self.match(["BANG", "MINUS"]):
             operator = self.previous_token()  # '!' or '-'
             right = self.unary()
             return Unary(operator, right)
-        return self.primary()
+        return self.call()
+    
+    def call(self):
+        """ call           → primary ( "(" arguments? ")" )* ; """
+        expr = self.primary()
+
+        while True:
+            if expr and self.match("LEFT_PAREN"):
+                expr = self.finish_call(expr)
+            else:
+                break
+
+        return expr
     
     def primary(self):
         """
@@ -401,6 +412,17 @@ class Parser:
             self.advance()
             return True
         return False
+    
+    def finish_call(self, callee: NodeExpr):
+        """Prepare the AST node representing the call to a function"""
+        arguments = []
+
+        # TODO fetching arguments
+        currtok = self.peek()
+        if not self.match("RIGHT_PAREN"):
+            raise self.error(currtok, "Expected ')' after arguments.")
+        
+        return Call(callee, self.previous_token(), arguments)
     
     def error(self, token, message):
         if token.toktype == "EOF":

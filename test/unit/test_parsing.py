@@ -2,7 +2,7 @@ import pytest
 import re
 from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError  # type: ignore
 from scanning import Token
-from syntax import Assign, Logical, Variable
+from syntax import Assign, Call, Logical, Variable
 from tokens import AND, DIVISE, LESS_EQUAL, MINUS, NOT_EQUAL, OR, PLUS
 
 TOKEN_PATTERN = re.compile(r'(\w+) (".*"|.*) (null|.+)')
@@ -88,6 +88,13 @@ def test_Parser_unary():
     assert Parser(_text2tokens("""STRING "test" test""")).unary() == Literal("test")
 
 
+def test_Parser_call():
+    tokens = _text2tokens("""IDENTIFIER "clock" clock
+                             LEFT_PAREN ( null
+                             RIGHT_PAREN ) null""")
+    assert Parser(tokens).call() == Call(Variable(tokens[0]), tokens[2], arguments=[])
+
+
 def test_Parser_primary():
     p = Parser(TOKENS)
     assert p.primary() == Literal(2.0)
@@ -151,6 +158,29 @@ def test_Parser_match():
     # even though the last token is EOF, a match on it always returns False
     p.current = LAST
     assert p.match("EOF") is False
+
+
+def test_Parser_finish_call_no_arguments():
+    tokens = _text2tokens("""IDENTIFIER "add" add
+                             LEFT_PAREN ( null
+                             RIGHT_PAREN ) null""")
+    p = Parser(tokens)
+    p.current = 2
+    node = p.finish_call(Variable(tokens[0]))
+    assert isinstance(node, Call)
+    assert node.callee == Variable(tokens[0])
+    assert node.paren == tokens[2]
+    assert node.arguments == []
+
+
+def test_Parser_finish_call_with_unterminated_parentheses():
+    tokens = _text2tokens("""IDENTIFIER "add" add
+                             LEFT_PAREN ( null""")
+    p = Parser(tokens)
+    p.current = 2
+    with pytest.raises(ParserError) as ex:
+        p.finish_call(Variable(tokens[0]))
+    assert ex.value.args[0] == (2, "Expected ')' after arguments.", " at end")
 
 
 def test_Parser_synchronize_post_error_with_semicolon():

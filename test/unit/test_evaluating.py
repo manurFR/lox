@@ -95,7 +95,8 @@ def test_evaluate_variable_reading(interpreter):
 def test_evaluate_assignment(interpreter):
     interpreter.environment.define("v", None)  # "v" must be defined before we can assign it a value
     assert interpreter.evaluate(Assign(Token("IDENTIFIER", "v", None, 1), Literal("test"))) == "test"
-    assert interpreter.environment.values == {"v": "test"}
+    assert "v" in interpreter.environment.values
+    assert interpreter.environment.values["v"] == "test"
 
 
 def test_is_truthy(interpreter):
