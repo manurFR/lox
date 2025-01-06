@@ -77,3 +77,15 @@ print add;
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "5\n75\n<fn add>"
+
+    # -- syntax errors --
+    status, output, stderr = run_lox(command="run", lox_source="fun no_comma(a, b c, d, e, f) {}\nno_comma();")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'no_comma': Expected ')' after parameters."
+
+    # -- runtime error
+    status, output, stderr = run_lox(command="run", lox_source="fun add(a, b) {print a+b;} \n add(1);")
+    assert status == 70
+    assert output == ""
+    assert stderr == "Expected 2 arguments but got 1.\n[line 2]"
