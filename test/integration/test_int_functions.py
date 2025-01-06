@@ -110,3 +110,43 @@ print (clock() - start) < 5; // 5 seconds
     # no return statement
     _, output, _ = run_lox(command="run", lox_source="fun f() {var a=1;} print f();")
     assert output == "nil"
+
+
+def test_higher_order_functions(run_lox):
+    source = """
+var globalGreeting = "Hello";
+
+fun makeGreeter() {
+  fun greet(name) {
+    print globalGreeting + " " + name;
+  }
+  return greet;
+}
+
+var sayHello = makeGreeter();
+sayHello("Bob");
+"""
+
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "Hello Bob"
+
+    source = """
+fun returnArg(arg) {
+  return arg;
+}
+
+fun returnFunCallWithArg(func, arg) {
+  return returnArg(func)(arg);
+}
+
+fun printArg(arg) {
+  print arg;
+}
+
+returnFunCallWithArg(printArg, "foo");
+"""
+
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "foo"
