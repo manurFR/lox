@@ -167,3 +167,12 @@ class Function(NodeStmt):
 
     def __repr__(self) -> str:
         return f"fun {self.name.lexeme}({', '.join(p.lexeme for p in self.params)}) {{ {repr(self.body)} }}"
+    
+
+@dataclass
+class Return(NodeStmt):
+    token: 'Token'  # type: ignore
+    value: Optional[NodeExpr]
+
+    def __repr__(self) -> str:
+        return f"return{f' {repr(self.value)}' if self.value else ''};"

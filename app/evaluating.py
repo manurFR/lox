@@ -1,10 +1,10 @@
 from typing import Any
 from environment import Environment
 from errors import LoxRuntimeError
-from functions import LoxCallable, LoxUserFunction, register_native_functions
+from functions import BreakException, LoxCallable, LoxUserFunction, ReturnException, register_native_functions
 from output import stringify
 from syntax import (Assign, Block, AbortLoop, Call, Expression, Function, If, Logical, NodeExpr, NodeStmt, 
-                    Literal, Grouping, Print, Unary, Binary, Var, Variable, While)
+                    Literal, Grouping, Print, Return, Unary, Binary, Var, Variable, While)
 
 
 class Interpreter:
@@ -67,6 +67,12 @@ class Interpreter:
             case Function() as declaration:
                 function = LoxUserFunction(declaration)
                 self.environment.define(declaration.name.lexeme, function)
+
+            case Return() as stmt:
+                value = None
+                if stmt.value:
+                    value = self.evaluate(stmt.value)
+                raise ReturnException(value)
         
             case _:
                 raise NotImplementedError(node)
@@ -209,7 +215,3 @@ class Interpreter:
             (isinstance(left, str) and isinstance(right, str))):
             return
         raise LoxRuntimeError(operator, "Operands must be two numbers or two strings.")
-
-
-class BreakException(Exception):
-    pass

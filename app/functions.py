@@ -29,7 +29,11 @@ class LoxUserFunction(LoxCallable):
         environment = Environment(enclosing=interpreter.globals)
         for param, value in zip(self.declaration.params, arguments):
             environment.define(param.lexeme, value)
-        interpreter.execute_block(self.declaration.body, environment)
+
+        try:
+            interpreter.execute_block(self.declaration.body, environment)
+        except ReturnException as retex:
+            return retex.value
 
     def __repr__(self) -> str:
         return f"<fn {self.declaration.name.lexeme}>"
@@ -48,3 +52,12 @@ class _NativeClock(LoxCallable):
     
     def __repr__(self) -> str:
         return f"<fn clock (native)>"
+    
+
+class BreakException(Exception):
+    pass
+
+
+class ReturnException(RuntimeError):
+    def __init__(self, value: Any) -> None:
+        self.value = value

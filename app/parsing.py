@@ -1,7 +1,7 @@
 from errors import Errors
 from lexemes import STATEMENTS
 from syntax import (Assign, Binary, Block, AbortLoop, Call, Expression, Function, Grouping, 
-                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Unary, Var, Variable, While)
+                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Unary, Var, Variable, While)
 
 
 class Parser:
@@ -38,8 +38,8 @@ class Parser:
                     | forStmt
                     | ifStmt
                     | printStmt
+                    | returnStmt
                     | whileStmt
-                    | abortLoopStmt
                     | block ;
 
     whileStmt      → "while" "(" expression ")" statement ;
@@ -58,6 +58,8 @@ class Parser:
     funDecl        → "fun" function ;
     function       → IDENTIFIER "(" parameters? ")" block ;
     parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+
+    returnStmt     → "return" expression? ";" ;
 
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
@@ -96,11 +98,13 @@ class Parser:
         return self.statement()
 
     def statement(self):
-        """ statement      → exprStmt | ifStmt | printStmt | whileStmt | abortLoopStmt | block ; """
+        """ statement      → exprStmt | ifStmt | printStmt | returnStmt | whileStmt | abortLoopStmt | block ; """
         if self.match("IF"):
             return self.if_statement()
         if self.match("PRINT"):
             return self.print_statement()
+        if self.match("RETURN"):
+            return self.return_statement()
         if self.match("FOR"):
             return self.for_statement()
         if self.match("WHILE"):
@@ -140,6 +144,16 @@ class Parser:
             raise self.error(currtok, "Expected ';' after value.")
         return Print(value)
     
+    def return_statement(self):
+        """ returnStmt     → "return" expression? ";" ; """
+        currtok = self.previous_token()  # RETURN token
+        value = None
+        if self.is_at_end() or self.peek().toktype != "SEMICOLON":
+            value = self.expression()
+        if not (self.match("SEMICOLON") or self.lenient):
+            raise self.error(currtok, "Expected ';' after return value.")
+        return Return(currtok, value)
+
     def while_statement(self):
         """ whileStmt      → "while" "(" expression ")" statement ; """
         currtok = self.previous_token()  # WHILE token
@@ -261,7 +275,7 @@ class Parser:
             raise self.error(name, f"Expected '(' after {kind} name.")
         
         parameters = []
-        if self.is_at_end() or self.peek().toktype != "RIGHT_PAREN":
+        if self.peek().toktype != "RIGHT_PAREN":
             while True:
                 if len(parameters) >= 255:
                     Errors.report(self.peek().line, "Can't have more than 255 arguments.", f" at '{self.peek().lexeme}'")
@@ -455,7 +469,7 @@ class Parser:
         currtok = self.previous_token()  # LEFT_PAREN token
 
         arguments = []
-        if self.is_at_end() or self.peek().toktype != "RIGHT_PAREN":
+        if self.peek().toktype != "RIGHT_PAREN":
             while True:
                 if len(arguments) >= 255:
                     Errors.report(currtok.line, "Can't have more than 255 arguments.", " at '('")

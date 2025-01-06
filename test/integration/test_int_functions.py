@@ -89,3 +89,24 @@ print add;
     assert status == 70
     assert output == ""
     assert stderr == "Expected 2 arguments but got 1.\n[line 2]"
+
+
+def test_user_functions_with_return(run_lox):
+    source = """
+fun fib(n) {
+  if (n < 2) return n;
+  return fib(n - 2) + fib(n - 1);
+}
+
+var start = clock();
+print fib(20) == 6765;
+print (clock() - start) < 5; // 5 seconds
+"""
+
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "true\ntrue"
+
+    # no return statement
+    _, output, _ = run_lox(command="run", lox_source="fun f() {var a=1;} print f();")
+    assert output == "nil"
