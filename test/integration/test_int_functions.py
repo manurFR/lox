@@ -112,7 +112,7 @@ print (clock() - start) < 5; // 5 seconds
     assert output == "nil"
 
 
-def test_higher_order_functions(run_lox):
+def test_higher_order_functions(run_lox):  # aka "closures"
     source = """
 var globalGreeting = "Hello";
 
@@ -132,21 +132,21 @@ sayHello("Bob");
     assert output == "Hello Bob"
 
     source = """
-fun returnArg(arg) {
-  return arg;
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    return i;
+  }
+
+  return count;
 }
 
-fun returnFunCallWithArg(func, arg) {
-  return returnArg(func)(arg);
-}
-
-fun printArg(arg) {
-  print arg;
-}
-
-returnFunCallWithArg(printArg, "foo");
-"""
+var counter = makeCounter();
+print counter(); // "1".
+print counter(); // "2".
+""".strip()
 
     _, output, _ = run_lox(command="run", lox_source=source)
 
-    assert output == "foo"
+    assert output == "1\n2"

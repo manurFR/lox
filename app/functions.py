@@ -19,14 +19,15 @@ class LoxCallable(ABC):
 
 
 class LoxUserFunction(LoxCallable):
-    def __init__(self, declaration: Function) -> None:
+    def __init__(self, declaration: Function, closure: Environment) -> None:
         self.declaration = declaration
+        self.closure = closure
 
     def arity(self) -> int:
         return len(self.declaration.params)
     
     def call(self, interpreter, arguments: list[Any]) -> Any:
-        environment = Environment(enclosing=interpreter.globals)
+        environment = Environment(enclosing=self.closure)
         for param, value in zip(self.declaration.params, arguments):
             environment.define(param.lexeme, value)
 

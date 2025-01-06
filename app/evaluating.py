@@ -65,7 +65,7 @@ class Interpreter:
                 self.execute_block(block.statements, environment=blockscope)
 
             case Function() as declaration:
-                function = LoxUserFunction(declaration)
+                function = LoxUserFunction(declaration, self.environment)
                 self.environment.define(declaration.name.lexeme, function)
 
             case Return() as stmt:
