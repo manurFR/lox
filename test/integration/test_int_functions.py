@@ -64,6 +64,12 @@ print test;
     assert output == ""
     assert stderr == "[line 1] Error at 'no_braces': Expected '{' before function body."
 
+    # -- runtime errors --
+    status, output, stderr = run_lox(command="run", lox_source="85();")
+    assert status == 70
+    assert output == ""
+    assert stderr == "Can only call functions and classes.\n[line 1]"
+
 
 def test_user_functions_with_arguments(run_lox):
     source = """
@@ -135,7 +141,7 @@ sayHello("Bob");
 fun makeCounter() {
   var i = 0;
   fun count() {
-    i = i + 1;
+    i = i + 1;  // closure! i is declared in the body of the enclosing element
     return i;
   }
 
