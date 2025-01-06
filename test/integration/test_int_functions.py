@@ -13,13 +13,12 @@ print c;
     val = int(float(output.strip()))
     assert 1735900 < val < 1800000
 
-    # -- syntax error --
+    # -- runtime errors --
     status, output, stderr = run_lox(command="run", lox_source="clock(25, 12, 2024);")
-    assert status == 65
+    assert status == 70
     assert output == ""
-    assert stderr == "[line 1] Error at '25': Expected ')' after arguments."
+    assert stderr == "Expected 0 arguments but got 3.\n[line 1]"
 
-    # -- runtime error --
     status, output, stderr = run_lox(command="run", lox_source='"not_a_function"();')
     assert status == 70
     assert output == ""
@@ -50,7 +49,12 @@ print test;
     assert output == ""
     assert stderr == "[line 1] Error at 'no_leftparen': Expected '(' after function name."
 
-    status, output, stderr = run_lox(command="run", lox_source="fun no_rightparen( {}")
+    status, output, stderr = run_lox(command="run", lox_source="fun no_param_name( {}")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'no_param_name': Expected parameter name."
+
+    status, output, stderr = run_lox(command="run", lox_source="fun no_rightparen(a {}")
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at 'no_rightparen': Expected ')' after parameters."
@@ -59,3 +63,17 @@ print test;
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at 'no_braces': Expected '{' before function body."
+
+
+def test_user_functions_with_arguments(run_lox):
+    source = """
+var a = 5;
+fun add(a, b, c) { print a + b + c; }
+print a;
+add(24, 25, 26);
+print add;
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "5\n75\n<fn add>"

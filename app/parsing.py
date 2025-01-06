@@ -257,8 +257,17 @@ class Parser:
         if not self.match("LEFT_PAREN"):
             raise self.error(name, f"Expected '(' after {kind} name.")
         
-        parameters = []  # TODO
-
+        parameters = []
+        if self.is_at_end() or self.peek().toktype != "RIGHT_PAREN":
+            while True:
+                if len(parameters) >= 255:
+                    Errors.report(self.peek().line, "Can't have more than 255 arguments.", f" at '{self.peek().lexeme}'")
+                if not self.match("IDENTIFIER"):
+                    raise self.error(name, "Expected parameter name.")
+                parameters.append(self.previous_token())
+                if not self.match("COMMA"):
+                    break
+        
         if not self.match("RIGHT_PAREN"):
             raise self.error(name, "Expected ')' after parameters.")
 
@@ -277,7 +286,7 @@ class Parser:
     
     def assignment(self):
         """ assignment     → IDENTIFIER "=" assignment | logic_or ; """
-        # Assignments (like "a = 3") are tricky because they start as regular expression
+        # Assignments (like "a = 3") are tricky because they start as a normal expression
         #  (here "a" could mean we want the value of the variable) but the parser can only
         #  understand it is an assignment later, when it encounters the '=' token.
         # So we will parse the first tokens as an expression, and convert that to the left-hand
@@ -378,13 +387,11 @@ class Parser:
     def call(self):
         """ call           → primary ( "(" arguments? ")" )* ; """
         expr = self.primary()
-
         while True:
             if expr and self.match("LEFT_PAREN"):
                 expr = self.finish_call(expr)
             else:
                 break
-
         return expr
     
     def primary(self):
@@ -442,11 +449,20 @@ class Parser:
         return False
     
     def finish_call(self, callee: NodeExpr):
-        """Prepare the AST node representing the call to a function"""
-        arguments = []
+        """Prepare the AST node representing the call to a function, parsing the arguments.
+            arguments      → expression ( "," expression )* ;
+        """
+        currtok = self.previous_token()  # LEFT_PAREN token
 
-        # TODO fetching arguments
-        currtok = self.peek()
+        arguments = []
+        if self.is_at_end() or self.peek().toktype != "RIGHT_PAREN":
+            while True:
+                if len(arguments) >= 255:
+                    Errors.report(currtok.line, "Can't have more than 255 arguments.", " at '('")
+                arguments.append(self.expression())
+                if not self.match("COMMA"):
+                    break
+        
         if not self.match("RIGHT_PAREN"):
             raise self.error(currtok, "Expected ')' after arguments.")
         

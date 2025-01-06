@@ -7,13 +7,14 @@ from syntax import Function
 
 
 class LoxCallable(ABC):
+    """Abstract Base Class => all @abstractmethod definitions MUST be implemented by subclasses"""
     @abstractmethod
     def arity(self) -> int:
         """Number of arguments required"""
         pass
     
     @abstractmethod
-    def call(self, interpreter: 'Interpreter', arguments: list[Any]) -> Any: # type: ignore
+    def call(self, interpreter, arguments: list[Any]) -> Any: 
         pass
 
 
@@ -24,9 +25,10 @@ class LoxUserFunction(LoxCallable):
     def arity(self) -> int:
         return len(self.declaration.params)
     
-    def call(self, interpreter: 'Interpreter', arguments: list[Any]) -> Any: # type: ignore
+    def call(self, interpreter, arguments: list[Any]) -> Any:
         environment = Environment(enclosing=interpreter.globals)
-        # TODO inject arguments into function parameters
+        for param, value in zip(self.declaration.params, arguments):
+            environment.define(param.lexeme, value)
         interpreter.execute_block(self.declaration.body, environment)
 
     def __repr__(self) -> str:
@@ -41,7 +43,7 @@ class _NativeClock(LoxCallable):
     def arity(self) -> int:
         return 0
     
-    def call(self, interpreter: 'Interpreter', arguments: list[Any]) -> float: # type: ignore
+    def call(self, interpreter, arguments: list[Any]) -> float:
         return time.time()
     
     def __repr__(self) -> str:

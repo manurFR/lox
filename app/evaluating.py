@@ -3,7 +3,8 @@ from environment import Environment
 from errors import LoxRuntimeError
 from functions import LoxCallable, LoxUserFunction, register_native_functions
 from output import stringify
-from syntax import Assign, Block, AbortLoop, Call, Expression, Function, If, Logical, NodeExpr, NodeStmt, Literal, Grouping, Print, Unary, Binary, Var, Variable, While
+from syntax import (Assign, Block, AbortLoop, Call, Expression, Function, If, Logical, NodeExpr, NodeStmt, 
+                    Literal, Grouping, Print, Unary, Binary, Var, Variable, While)
 
 
 class Interpreter:
@@ -171,13 +172,12 @@ class Interpreter:
                 if not isinstance(function, LoxCallable):
                     raise LoxRuntimeError(call.paren, "Can only call functions and classes.")
 
-                arguments = []  # TODO
+                arguments = [self.evaluate(arg) for arg in call.arguments]
 
                 if len(arguments) != function.arity():
                     raise LoxRuntimeError(call.paren, f"Expected {function.arity()} arguments but got {len(arguments)}.")
 
                 return function.call(self, arguments)
-
 
             case _:
                 raise NotImplementedError(node)

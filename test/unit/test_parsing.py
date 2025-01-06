@@ -88,11 +88,38 @@ def test_Parser_unary():
     assert Parser(_text2tokens("""STRING "test" test""")).unary() == Literal("test")
 
 
-def test_Parser_call():
+def test_Parser_call_no_arguments():
     tokens = _text2tokens("""IDENTIFIER "clock" clock
                              LEFT_PAREN ( null
                              RIGHT_PAREN ) null""")
     assert Parser(tokens).call() == Call(Variable(tokens[0]), tokens[2], arguments=[])
+
+
+def test_Parser_call_two_arguments():
+    tokens = _text2tokens("""IDENTIFIER "add" add
+                             LEFT_PAREN ( null
+                             NUMBER 1 1.0
+                             COMMA , null
+                             NUMBER 2 2.0
+                             RIGHT_PAREN ) null""")
+    assert Parser(tokens).call() == Call(Variable(tokens[0]), tokens[5], arguments=[Literal(1.0), Literal(2.0)])
+
+
+def test_Parser_call_too_many_arguments(capsys):
+    rawtokens = ['IDENTIFIER "add" add', 'LEFT_PAREN ( null']
+    for _ in range(255):
+        rawtokens.append("NUMBER 1 1.0")
+        rawtokens.append("COMMA , null")
+    rawtokens.append("NUMBER 5 5.0")
+    rawtokens.append("RIGHT_PAREN ) null")
+    tokens = _text2tokens("\n".join(rawtokens))
+
+    c = Parser(tokens).call()
+
+    assert isinstance(c, Call)
+    assert c.callee == Variable(tokens[0])
+    assert c.arguments[0] == Literal(1.0)
+    assert capsys.readouterr()[1] == "[line 1] Error at '(': Can't have more than 255 arguments.\n"
 
 
 def test_Parser_primary():
@@ -175,12 +202,13 @@ def test_Parser_finish_call_no_arguments():
 
 def test_Parser_finish_call_with_unterminated_parentheses():
     tokens = _text2tokens("""IDENTIFIER "add" add
-                             LEFT_PAREN ( null""")
+                             LEFT_PAREN ( null
+                             NUMBER 2 2.0""")
     p = Parser(tokens)
     p.current = 2
     with pytest.raises(ParserError) as ex:
         p.finish_call(Variable(tokens[0]))
-    assert ex.value.args[0] == (2, "Expected ')' after arguments.", " at end")
+    assert ex.value.args[0] == (1, "Expected ')' after arguments.", " at '('")
 
 
 def test_Parser_synchronize_post_error_with_semicolon():
