@@ -1,6 +1,7 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import Assign, Binary, Block, AbortLoop, Call, Expression, Function, Grouping, If, Literal, Logical, NodeExpr, NodeStmt, Print, Unary, Var, Variable, While
+from syntax import (Assign, Binary, Block, AbortLoop, Call, Expression, Function, Grouping, 
+                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Unary, Var, Variable, While)
 
 
 class Parser:
@@ -24,8 +25,7 @@ class Parser:
 
         return statements
 
-    # ## GRAMMAR ##
-    """
+    """  ##### GRAMMAR #####
     program        → declaration* EOF ;
 
     declaration    → funDecl
@@ -82,7 +82,7 @@ class Parser:
     """
 
     def declaration(self):
-        """ declaration    → varDecl | statement ; """
+        """ declaration    → funDecl | varDecl | statement ; """
         try:
             if self.match("FUN"):
                 return self.function(kind="function")
@@ -96,7 +96,7 @@ class Parser:
         return self.statement()
 
     def statement(self):
-        """ statement      → exprStmt | ifStmt | printStmt | whileStmt | block ; """
+        """ statement      → exprStmt | ifStmt | printStmt | whileStmt | abortLoopStmt | block ; """
         if self.match("IF"):
             return self.if_statement()
         if self.match("PRINT"):
@@ -116,6 +116,8 @@ class Parser:
     # Statement parsing
 
     def if_statement(self):
+        """ ifStmt         → "if" "(" expression ")" statement
+                             ( "else" statement )? ; """
         currtok = self.previous_token()  # IF token
         if not self.match("LEFT_PAREN"):
             raise self.error(currtok, "Expected '(' after 'if'.")
@@ -202,9 +204,6 @@ class Parser:
 
         body = self.statement()
 
-        # if increment:
-            # body = Block([body, Expression(increment)])
-
         body = While(condition, body, increment)
 
         if initializer:
@@ -237,6 +236,7 @@ class Parser:
         return Var(name, expr=initializer)
     
     def block(self):
+        """ block          → "{" declaration* "}" ; """
         currtok = self.previous_token()  # '{'
         statements = []
 
@@ -249,6 +249,9 @@ class Parser:
         return statements
     
     def function(self, kind):
+        """ funDecl        → "fun" function ;
+            function       → IDENTIFIER "(" parameters? ")" block ;
+            parameters     → IDENTIFIER ( "," IDENTIFIER )* ; """
         name = self.peek()  # the function name token
 
         if not self.match("IDENTIFIER"):
@@ -306,7 +309,6 @@ class Parser:
 
         # It wasn't an assignment, go on parsing it as an expression
         return expr
-    
 
     def logic_or(self):
         """ logic_or       → logic_and ( "or" logic_and )* ; """
@@ -318,7 +320,6 @@ class Parser:
             expr = Logical(expr, operator, right)
 
         return expr
-    
 
     def logic_and(self):
         """ logic_and      → equality ( "and" equality )* ; """
@@ -331,7 +332,6 @@ class Parser:
 
         return expr
 
-    
     def equality(self):
         """ equality       → comparison ( ( "!=" | "==" ) comparison )* ; """
         expr = self.comparison()
