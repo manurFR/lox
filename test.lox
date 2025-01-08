@@ -1,1 +1,10 @@
--"hellow world!"
+{
+    var bar = "global bar";
+    var quz = "before";
+    {
+        var quz = "after";
+        print quz;
+        print bar;
+    }
+    print quz;
+}

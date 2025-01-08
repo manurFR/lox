@@ -247,7 +247,7 @@ class Parser:
 
         if not (self.match("SEMICOLON") or self.lenient):
             raise self.error(currtok, "Expected ';' after variable declaration.")
-        return Var(name, expr=initializer)
+        return Var(name, initializer=initializer)
     
     def block(self):
         """ block          → "{" declaration* "}" ; """

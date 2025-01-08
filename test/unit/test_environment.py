@@ -65,3 +65,43 @@ def test_Environment_assign_to_enclosing_or_shadowed():
     with pytest.raises(LoxRuntimeError) as exc:
         parent.assign(v2_token, "hello")
     assert exc.value.args == (v2_token, "Undefined variable 'v2'.")
+
+
+def test_Environment_ancestor():
+    e1 = Environment()
+    e2 = Environment(enclosing=e1)
+    e3 = Environment(enclosing=e2)
+    e4 = Environment(enclosing=e3)
+
+    assert e4.ancestor(2) == e2
+
+
+def test_Environment_get_at():
+    e1 = Environment()
+    e2 = Environment(enclosing=e1)
+    e3 = Environment(enclosing=e2)
+    e4 = Environment(enclosing=e3)
+
+    e1.define("depth", 1)
+    e2.define("depth", 2)
+    e3.define("depth", 3)
+    e4.define("depth", 4)
+
+    assert e4.get_at(1, "depth") == 3
+    assert e4.get_at(2, "depth") == 2
+    assert e4.get_at(3, "depth") == 1
+
+
+def test_Environment_assign_at():
+    e1 = Environment()
+    e2 = Environment(enclosing=e1)
+    e3 = Environment(enclosing=e2)
+    e4 = Environment(enclosing=e3)
+
+    e4.assign_at(1, Token("IDENTIFIER", "depth", None, 1), "up 1")
+    e4.assign_at(2, Token("IDENTIFIER", "depth", None, 1), "up 2")
+
+    assert e3.values["depth"] == "up 1"
+    assert e2.values["depth"] == "up 2"
+    assert "depth" not in e4.values
+    assert "depth" not in e1.values

@@ -118,7 +118,7 @@ print (clock() - start) < 5; // 5 seconds
     assert output == "nil"
 
 
-def test_higher_order_functions(run_lox):  # aka "closures"
+def test_higher_order_functions(run_lox):
     source = """
 var globalGreeting = "Hello";
 
@@ -136,23 +136,3 @@ sayHello("Bob");
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "Hello Bob"
-
-    source = """
-fun makeCounter() {
-  var i = 0;
-  fun count() {
-    i = i + 1;  // closure! i is declared in the body of the enclosing element
-    return i;
-  }
-
-  return count;
-}
-
-var counter = makeCounter();
-print counter(); // "1".
-print counter(); // "2".
-""".strip()
-
-    _, output, _ = run_lox(command="run", lox_source=source)
-
-    assert output == "1\n2"

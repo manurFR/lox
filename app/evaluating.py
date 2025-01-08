@@ -13,6 +13,8 @@ class Interpreter:
         register_native_functions(self.globals)
         self.environment = self.globals  # the current environment in the stack
         self.in_loop = False
+        # keep the result of the semantic analysis pass, ie. the number of levels between each variable reference and its storing environment
+        self._locals: dict[NodeExpr, int] = {}
 
     def execute(self, node: NodeStmt) -> None:
         """Execute a statement
@@ -56,8 +58,8 @@ class Interpreter:
 
             case Var() as stmt:
                 value = None
-                if stmt.expr is not None:
-                    value = self.evaluate(stmt.expr)
+                if stmt.initializer is not None:
+                    value = self.evaluate(stmt.initializer)
                 self.environment.define(stmt.name.lexeme, value)
 
             case Block() as block:
@@ -164,11 +166,17 @@ class Interpreter:
                 return self.evaluate(logical.right)
                     
             case Variable() as variable:
-                return self.environment.get(variable.name)
+                # return self.environment.get(variable.name)
+                return self.lookup_variable(variable.name, variable)
             
             case Assign() as assignment:
                 value = self.evaluate(assignment.value)
-                self.environment.assign(assignment.name, value)
+                # self.environment.assign(assignment.name, value)
+                distance = self._locals.get(assignment)
+                if distance is None:  # in the global environment
+                    self.globals.assign(assignment.name, value)
+                else:
+                    self.environment.assign_at(distance, assignment.name, value)
                 return value
             
             case Call() as call:
@@ -187,7 +195,6 @@ class Interpreter:
 
             case _:
                 raise NotImplementedError(node)
-            
 
     def is_truthy(self, value):
         """Lox's simple rule: false and nil are falsey, and everything else is truthy."""
@@ -197,21 +204,29 @@ class Interpreter:
             return value
         return True
 
-
     def check_is_number(self, operator, value):
         if isinstance(value, float):
             return
         raise LoxRuntimeError(operator, "Operand must be a number.")
     
-
     def check_both_numbers(self, operator, left, right):
         if isinstance(left, float) and isinstance(right, float):
             return
         raise LoxRuntimeError(operator, "Operands must be numbers.")
     
-
     def check_both_numbers_or_strings(self, operator, left, right):
         if ((isinstance(left, float) and isinstance(right, float)) or
             (isinstance(left, str) and isinstance(right, str))):
             return
         raise LoxRuntimeError(operator, "Operands must be two numbers or two strings.")
+
+    def resolve(self, expr: NodeExpr, depth: int):
+        self._locals[expr] = depth
+
+    def lookup_variable(self, name: 'Token', expr: NodeExpr): # type: ignore
+        distance = self._locals.get(expr)
+        if distance is None:  
+            # variables in the uppermost, "global", scope are not kept by the semantic pass
+            return self.globals.get(name)
+        else:
+            return self.environment.get_at(distance=distance, name=name.lexeme)

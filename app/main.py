@@ -2,6 +2,7 @@ import sys
 
 from output import stringify
 from errors import Errors, LoxRuntimeError
+from resolving import Resolver
 from scanning import tokenize
 from parsing import Parser
 from evaluating import Interpreter
@@ -42,6 +43,10 @@ def process(interpreter: Interpreter, command: str, source: str, exit_on_errors:
     # exit if syntax errors before evaluating
     if exit_on_errors:
         check_errors()
+
+    # semantic analysis pass
+    resolver = Resolver(interpreter)
+    resolver.resolve_statements(statements)
 
     # evaluating/executing
     try:

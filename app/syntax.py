@@ -7,14 +7,14 @@ Display the tree by calling repr(root) or print(root)
 from dataclasses import dataclass
 from typing import Any, Optional
 
-# Nodes for Expression statements
+# Nodes for Expression statements (frozen in order to be hashable, and thus valid dict keys in Interpreter._locals)
 
 class NodeExpr:
     # Only for type hints
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Binary(NodeExpr):
     left: NodeExpr  # expr
     operator: 'Token'  # type: ignore
@@ -24,7 +24,7 @@ class Binary(NodeExpr):
         return f"({self.operator.lexeme} {self.left} {self.right})"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Unary(NodeExpr):
     operator: 'Token'  # type: ignore
     right: NodeExpr  # expr
@@ -33,7 +33,7 @@ class Unary(NodeExpr):
         return f"({self.operator.lexeme} {self.right})"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Literal(NodeExpr):
     value: Any
 
@@ -43,7 +43,7 @@ class Literal(NodeExpr):
         return str(self.value).lower()
     
 
-@dataclass
+@dataclass(frozen=True)
 class Logical(NodeExpr):
     left: NodeExpr
     operator: 'Token'  # type: ignore
@@ -53,7 +53,7 @@ class Logical(NodeExpr):
         return f"{self.left} {self.operator.lexeme} {self.right}"
     
 
-@dataclass
+@dataclass(frozen=True)
 class Grouping(NodeExpr):
     expr: NodeExpr
 
@@ -61,7 +61,7 @@ class Grouping(NodeExpr):
         return f"(group {self.expr})"
     
 
-@dataclass
+@dataclass(frozen=True)
 class Variable(NodeExpr):
     """Expression for getting a variable value"""
     name: 'Token' # type: ignore
@@ -70,7 +70,7 @@ class Variable(NodeExpr):
         return self.name.lexeme
 
 
-@dataclass
+@dataclass(frozen=True)
 class Assign(NodeExpr):
     name: 'Token' # type: ignore
     value: NodeExpr
@@ -79,7 +79,7 @@ class Assign(NodeExpr):
         return f"{self.name.lexeme} = {self.value}"
     
 
-@dataclass
+@dataclass(frozen=True)
 class Call(NodeExpr):
     callee: NodeExpr  # the left expression that evaluates to the function to call
     paren: 'Token'  # type: ignore  # the token for the opening parenthese, for error reporting
@@ -127,10 +127,10 @@ class Print(NodeStmt):
 class Var(NodeStmt):
     """Statement for declaring a variable (with optional setting)"""
     name: 'Token' # type: ignore
-    expr: Optional[NodeExpr]
+    initializer: Optional[NodeExpr]
 
     def __repr__(self) -> str:
-        return f"var {self.name.lexeme}{" = " + repr(self.expr) if self.expr else ''};"
+        return f"var {self.name.lexeme}{" = " + repr(self.initializer) if self.initializer else ''};"
 
 
 @dataclass

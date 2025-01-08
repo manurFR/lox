@@ -5,7 +5,7 @@ from typing import Any
 from lexemes import LEXEMES_DESC_LENGTH, RESERVED_WORDS
 
 
-@dataclass
+@dataclass(frozen=True)
 class Token:
     toktype: str
     lexeme: str | None
