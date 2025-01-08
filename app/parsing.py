@@ -313,11 +313,10 @@ class Parser:
             raise self.error(name, "Expected '{' before class body.")
         
         methods = []
-        while not self.is_at_end():
+        while not self.is_at_end() and not self.peek().toktype == 'RIGHT_BRACE':
             methods.append(self.function("method"))
-            if self.match("RIGHT_BRACE"):
-                break
-        else:
+        
+        if not self.match("RIGHT_BRACE"):
             raise self.error(name, "Expected '}' after class body.")
         
         return Class(name, methods)
@@ -479,7 +478,7 @@ class Parser:
     
     def is_at_end(self):
         return self.peek().toktype == "EOF"
-
+    
     def match(self, toktypes: str | list[str]):
         """Beware: if match() returns True, it increments self.current !"""
         if isinstance(toktypes, str):

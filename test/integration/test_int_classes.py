@@ -36,4 +36,15 @@ print MapleSyrup;
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at 'no_rightbrace': Expected '}' after class body."
+
+
+def test_class_instanciation(run_lox):
+    source = """
+class Bagel {}
+var bagel = Bagel();
+print bagel;
+""".strip()
     
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "<instanceof Bagel>"
