@@ -144,12 +144,6 @@ while (test < 3) {
 
     assert output == "0\n1\n2\n0\n1\n2"
 
-    # -- runtime error --
-    status, output, stderr = run_lox(command="run", lox_source="if (true) break;")
-    assert status == 70
-    assert output == ""
-    assert stderr == "Error at 'break': should only happen in loops (while or for).\n[line 1]"
-
 
 def test_continue_statement(run_lox):
     source = """
@@ -163,8 +157,24 @@ for (var i = 0; i < 5; i = i + 1) {
 
     assert output == "0\n1\n4"
 
-    # -- runtime error --
-    status, output, stderr = run_lox(command="run", lox_source="continue;")
-    assert status == 70
+
+def test_error_return_at_top_level(run_lox):
+    status, output, stderr = run_lox(command="run", lox_source='return "at top level!";')
+
+    assert status == 65
     assert output == ""
-    assert stderr == "Error at 'continue': should only happen in loops (while or for).\n[line 1]"
+    assert stderr == "[line 1] Error at 'return': Can't use 'return' in top-level code."
+
+
+def test_error_break_or_continue_at_top_level(run_lox):
+    status, output, stderr = run_lox(command="run", lox_source='break;')
+
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'break': Can't use 'break' outside of loop."
+
+    status, output, stderr = run_lox(command="run", lox_source='if (true) { continue; }')
+
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'continue': Can't use 'continue' outside of loop."

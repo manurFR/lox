@@ -12,7 +12,6 @@ class Interpreter:
         self.globals = Environment()  # always keep a reference to the global environment, for access to the native functions
         register_native_functions(self.globals)
         self.environment = self.globals  # the current environment in the stack
-        self.in_loop = False
         # keep the result of the semantic analysis pass, ie. the number of levels between each variable reference and its storing environment
         self._locals: dict[NodeExpr, int] = {}
 
@@ -32,7 +31,6 @@ class Interpreter:
                 print(stringify(value))
 
             case While() as stmt:
-                self.in_loop = True
                 while(self.is_truthy(self.evaluate(stmt.condition))):
                     try:
                         self.execute(stmt.body)
@@ -44,12 +42,8 @@ class Interpreter:
                             pass  # let's evaluate the increment if it exists before starting the next loop
                     if stmt.increment:
                         self.evaluate(stmt.increment)
-                self.in_loop = False
 
             case AbortLoop() as stmt:
-                if not self.in_loop:
-                    raise LoxRuntimeError(stmt.token, 
-                                          f"Error at '{stmt.token.lexeme}': should only happen in loops (while or for).")
                 raise BreakException(stmt.token.toktype)
         
             case Expression() as stmt:

@@ -40,3 +40,18 @@ var a = "global";
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "global\nglobal"
+
+
+def test_error_variables_with_same_name(run_lox):
+    source = """
+fun bad() {
+  var a = "first";
+  var a = "second";
+}
+""".strip()
+    
+    status, output, stderr = run_lox(command="run", lox_source=source)
+
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 3] Error at 'a': A variable with the same name is already present in the same scope."

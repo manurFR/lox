@@ -40,13 +40,17 @@ def process(interpreter: Interpreter, command: str, source: str, exit_on_errors:
         check_errors()
         exit(0)
 
-    # exit if syntax errors before evaluating
+    # exit if syntax errors before semantic pass
     if exit_on_errors:
         check_errors()
 
     # semantic analysis pass
     resolver = Resolver(interpreter)
     resolver.resolve_statements(statements)
+
+    # exit if semantic errors before evaluating
+    if exit_on_errors:
+        check_errors()
 
     # evaluating/executing
     try:

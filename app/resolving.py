@@ -1,10 +1,17 @@
 
 from collections import deque
+from enum import Enum
 
 from errors import Errors
 from scanning import Token
 from syntax import (AbortLoop, Assign, Binary, Block, Call, Expression, Function, Grouping, If, Literal, Logical, 
                     NodeExpr, NodeStmt, Print, Return, Unary, Var, Variable, While)
+
+
+class FlowType(Enum):
+    NONE = -1
+    FUNCTION = 0
+    LOOP = 10
 
 
 class Resolver:
@@ -16,6 +23,7 @@ class Resolver:
     def __init__(self, interpreter) -> None:
         self.interpreter = interpreter
         self.scopes: deque[dict[str, bool]] = deque()  # Stack
+        self.current_flow = FlowType.NONE  # to detect return statements at top level, break outside loops, etc.
 
     def resolve(self, node: NodeStmt) -> None:
         """Perform the semantic analysis and keep the record of the found variables.
@@ -37,7 +45,7 @@ class Resolver:
                 self._declare(function.name)
                 self._define(function.name)
                 # bind the function's parameters to the inner function scope
-                self.resolve_function(function)
+                self.resolve_function(function, FlowType.FUNCTION)
 
             case Expression() as stmt:
                 self.resolve_expression(stmt.expr)
@@ -53,18 +61,24 @@ class Resolver:
                 self.resolve_expression(stmt.expr)
 
             case Return() as stmt:
+                if self.current_flow != FlowType.FUNCTION:
+                    self._error(stmt.token, "Can't use 'return' in top-level code.")
                 if stmt.value:
                     self.resolve_expression(stmt.value)
 
             case While() as stmt:
                 """This is a semantic pass, so we don't loop. We resolve each part once and only once."""
+                enclosing_flow = self.current_flow
+                self.current_flow = FlowType.LOOP
                 self.resolve_expression(stmt.condition)
                 if stmt.increment:
                     self.resolve_expression(stmt.increment)
                 self.resolve(stmt.body)
+                self.current_flow = enclosing_flow
 
-            case AbortLoop():
-                pass
+            case AbortLoop() as stmt:
+                if self.current_flow != FlowType.LOOP:
+                    self._error(stmt.token, f"Can't use '{stmt.token.lexeme}' outside of loop.")
 
             case _:
                 raise NotImplementedError(node)
@@ -112,25 +126,26 @@ class Resolver:
                 raise NotImplementedError(node)
             
     def resolve_local(self, expr: NodeExpr, name: Token):
-        for distance, scope in enumerate(reversed(self.scopes)):
-        # for idx in range(len(self.scopes) - 1, -1, -1):  # reverse walk the scopes, innermost to outermost
+        for distance, scope in enumerate(reversed(self.scopes)):  # reverse walk the scopes, innermost to outermost
             if name.lexeme in scope:
                 # Number of scopes between the current innermost scope and the one where the variable was found
                 #  for example, if the variable was found in the current scope, distance == 1 ; if it's the
                 #  immediately enclosing scope, distance == 1 ; etc.
                 # If the variable is unresolved (ie. we never reach this 'if' block), we can assume it's global
                 #  and thus not tracked in the resolver.
-                # distance = len(self.scopes) - 1 - idx
                 self.interpreter.resolve(expr, distance)
                 return
 
-    def resolve_function(self, function: Function):
+    def resolve_function(self, function: Function, functype: FlowType):
+        enclosing_flow = self.current_flow
+        self.current_flow = functype
         self._begin_scope()
         for param in function.params:
             self._declare(param)
             self._define(param)
         self.resolve_statements(function.body)
         self._end_scopes()
+        self.current_flow = enclosing_flow
     
     def _begin_scope(self):
         self.scopes.append(dict())
