@@ -1,9 +1,10 @@
 from typing import Any
+from classes import LoxClass
 from environment import Environment
 from errors import LoxRuntimeError
 from functions import BreakException, LoxCallable, LoxUserFunction, ReturnException, register_native_functions
 from output import stringify
-from syntax import (Assign, Block, AbortLoop, Call, Expression, Function, If, Logical, NodeExpr, NodeStmt, 
+from syntax import (Assign, Block, AbortLoop, Call, Class, Expression, Function, If, Logical, NodeExpr, NodeStmt, 
                     Literal, Grouping, Print, Return, Unary, Binary, Var, Variable, While)
 
 
@@ -69,6 +70,12 @@ class Interpreter:
                 if stmt.value:
                     value = self.evaluate(stmt.value)
                 raise ReturnException(value)
+            
+            case Class() as stmt:
+                # two-steps binding so that the class name can be referenced in its body
+                self.environment.define(stmt.name.lexeme, None)
+                klass = LoxClass(stmt.name.lexeme)
+                self.environment.assign(stmt.name, klass)
         
             case _:
                 raise NotImplementedError(node)

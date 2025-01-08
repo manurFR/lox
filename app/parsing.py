@@ -1,6 +1,6 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import (Assign, Binary, Block, AbortLoop, Call, Expression, Function, Grouping, 
+from syntax import (Assign, Binary, Block, AbortLoop, Call, Class, Expression, Function, Grouping, 
                     If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Unary, Var, Variable, While)
 
 
@@ -28,7 +28,8 @@ class Parser:
     """  ##### GRAMMAR #####
     program        → declaration* EOF ;
 
-    declaration    → funDecl
+    declaration    → classDecl
+                    | funDecl
                     | varDecl
                     | statement ;
 
@@ -61,6 +62,8 @@ class Parser:
 
     returnStmt     → "return" expression? ";" ;
 
+    classDecl      → "class" IDENTIFIER "{" function* "}" ;
+
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
 
@@ -84,8 +87,10 @@ class Parser:
     """
 
     def declaration(self):
-        """ declaration    → funDecl | varDecl | statement ; """
+        """ declaration    → classDecl | funDecl | varDecl | statement ; """
         try:
+            if self.match("CLASS"):
+                return self.class_declaration()
             if self.match("FUN"):
                 return self.function(kind="function")
             if self.match("VAR"):
@@ -266,10 +271,11 @@ class Parser:
         """ funDecl        → "fun" function ;
             function       → IDENTIFIER "(" parameters? ")" block ;
             parameters     → IDENTIFIER ( "," IDENTIFIER )* ; """
-        name = self.peek()  # the function name token
+        currtok = self.peek()  # the FUN token
 
         if not self.match("IDENTIFIER"):
-            raise self.error(name, f"Expected {kind} name.")
+            raise self.error(currtok, f"Expected {kind} name.")
+        name = self.previous_token()
         
         if not self.match("LEFT_PAREN"):
             raise self.error(name, f"Expected '(' after {kind} name.")
@@ -294,6 +300,27 @@ class Parser:
         body = self.block()
 
         return Function(name, parameters, body)
+    
+    def class_declaration(self):
+        """ classDecl      → "class" IDENTIFIER "{" function* "}" ; """
+        currtok = self.peek()  # the CLASS token
+
+        if not self.match("IDENTIFIER"):
+            raise self.error(currtok, "Expected class name.")
+        name = self.previous_token()
+
+        if not self.match("LEFT_BRACE"):
+            raise self.error(name, "Expected '{' before class body.")
+        
+        methods = []
+        while not self.is_at_end():
+            methods.append(self.function("method"))
+            if self.match("RIGHT_BRACE"):
+                break
+        else:
+            raise self.error(name, "Expected '}' after class body.")
+        
+        return Class(name, methods)
 
     # Expression parsing
 

@@ -1,5 +1,5 @@
 from scanning import Token  # type: ignore
-from syntax import Assign, Binary, Block, Call, Expression, Function, Grouping, If, Literal, Logical, Print, Return, Unary, Var, Variable, While # type: ignore
+from syntax import Assign, Binary, Block, Call, Class, Expression, Function, Grouping, If, Literal, Logical, Print, Return, Unary, Var, Variable, While # type: ignore
 from tokens import AND, GREATER, LESS, MINUS, MULTIPLY, NOT, OR, PLUS
 
 
@@ -89,3 +89,11 @@ def test_Return_repr():
     assert repr(Function(name=Token("IDENTIFIER", "random", None, 1),
                          params=[],
                          body=[Return(Token("RETURN", "return", None, 2), Literal(0.259))])) == "fun random() { [return 0.259;] }"
+
+
+def test_Class_repr():
+    assert repr(Class(name=Token("IDENTIFIER", "Breakfast", None, 1),
+                      methods=[Function(name=Token("IDENTIFIER", "cook", None, 2),
+                                        params=[],
+                                        body=[Print(Literal("Eggs a-frying!"))])])) == \
+                                            'class Breakfast { [fun cook() { [print eggs a-frying!;] }] }'

@@ -4,7 +4,7 @@ from enum import Enum
 
 from errors import Errors
 from scanning import Token
-from syntax import (AbortLoop, Assign, Binary, Block, Call, Expression, Function, Grouping, If, Literal, Logical, 
+from syntax import (AbortLoop, Assign, Binary, Block, Call, Class, Expression, Function, Grouping, If, Literal, Logical, 
                     NodeExpr, NodeStmt, Print, Return, Unary, Var, Variable, While)
 
 
@@ -46,6 +46,10 @@ class Resolver:
                 self._define(function.name)
                 # bind the function's parameters to the inner function scope
                 self.resolve_function(function, FlowType.FUNCTION)
+
+            case Class() as stmt:
+                self._declare(stmt.name)
+                self._define(stmt.name)
 
             case Expression() as stmt:
                 self.resolve_expression(stmt.expr)

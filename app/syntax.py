@@ -176,3 +176,12 @@ class Return(NodeStmt):
 
     def __repr__(self) -> str:
         return f"return{f' {repr(self.value)}' if self.value else ''};"
+    
+
+@dataclass
+class Class(NodeStmt):
+    name: 'Token'  # type: ignore
+    methods: list[Function]
+
+    def __repr__(self) -> str:
+        return f"class {self.name.lexeme} {{ {self.methods} }}"

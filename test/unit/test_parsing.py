@@ -1,6 +1,6 @@
 import pytest
 import re
-from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError  # type: ignore
+from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError
 from scanning import Token
 from syntax import Assign, Call, Logical, Variable
 from tokens import AND, DIVISE, LESS_EQUAL, MINUS, NOT_EQUAL, OR, PLUS
