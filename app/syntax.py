@@ -87,6 +87,27 @@ class Call(NodeExpr):
 
     def __repr__(self) -> str:
         return f"{self.callee}({', '.join(repr(arg) for arg in self.arguments)})"
+    
+
+@dataclass(frozen=True)
+class Get(NodeExpr):
+    """ Fetching a value from an instance with instance.property is the 'Get' expression """
+    instance: NodeExpr
+    name: 'Token'  # type: ignore  # the property
+
+    def __repr__(self) -> str:
+        return f"{repr(self.instance)}.{self.name.lexeme}"
+    
+
+@dataclass(frozen=True)
+class Set(NodeExpr):
+    """ Setting an instance property with instance.property = <value> is the 'Set' expression """
+    instance: NodeExpr
+    name: 'Token'  # type: ignore  # the property
+    value: NodeExpr
+
+    def __repr__(self) -> str:
+        return f"{repr(self.instance)}.{self.name.lexeme} = {repr(self.value)}"
 
 
 # Nodes for other statements

@@ -1,5 +1,5 @@
 from scanning import Token  # type: ignore
-from syntax import Assign, Binary, Block, Call, Class, Expression, Function, Grouping, If, Literal, Logical, Print, Return, Unary, Var, Variable, While # type: ignore
+from syntax import Assign, Binary, Block, Call, Class, Expression, Function, Get, Grouping, If, Literal, Logical, Print, Return, Set, Unary, Var, Variable, While # type: ignore
 from tokens import AND, GREATER, LESS, MINUS, MULTIPLY, NOT, OR, PLUS
 
 
@@ -41,6 +41,17 @@ def test_Assign_repr():
 
 def test_Call_repr():
     assert repr(Call(Literal("add"), Token("LEFT_PAREN", "(", None, 1), [Literal(2), Literal(3)])) == "add(2, 3)"
+
+
+def test_Get_repr():
+    assert repr(Get(Variable(Token("IDENTIFIER", "instance", None, 1)), 
+                    Token("IDENTIFIER", "property1", None, 1))) == "instance.property1"
+    
+
+def test_Set_repr():
+    assert repr(Set(Variable(Token("IDENTIFIER", "instance", None, 1)), 
+                    Token("IDENTIFIER", "property2", None, 1),
+                    Binary(Literal(1.0), PLUS, Literal(5.0)))) == "instance.property2 = (+ 1.0 5.0)"
 
 
 # Statement classes

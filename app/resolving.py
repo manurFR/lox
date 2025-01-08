@@ -4,8 +4,8 @@ from enum import Enum
 
 from errors import Errors
 from scanning import Token
-from syntax import (AbortLoop, Assign, Binary, Block, Call, Class, Expression, Function, Grouping, If, Literal, Logical, 
-                    NodeExpr, NodeStmt, Print, Return, Unary, Var, Variable, While)
+from syntax import (AbortLoop, Assign, Binary, Block, Call, Class, Expression, Function, Get, Grouping, If, Literal, Logical, 
+                    NodeExpr, NodeStmt, Print, Return, Set, Unary, Var, Variable, While)
 
 
 class FlowType(Enum):
@@ -111,6 +111,13 @@ class Resolver:
                  self.resolve_expression(call.callee)
                  for arg in call.arguments:
                      self.resolve_expression(arg)
+
+            case Get() as get:
+                self.resolve_expression(get.instance)
+
+            case Set() as expr:
+                self.resolve_expression(expr.instance)
+                self.resolve_expression(expr.value)
 
             case Grouping() as grouping:
                 self.resolve_expression(grouping.expr)

@@ -1,11 +1,11 @@
 from typing import Any
-from classes import LoxClass
+from classes import LoxClass, LoxInstance
 from environment import Environment
 from errors import LoxRuntimeError
 from functions import BreakException, LoxCallable, LoxUserFunction, ReturnException, register_native_functions
 from output import stringify
-from syntax import (Assign, Block, AbortLoop, Call, Class, Expression, Function, If, Logical, NodeExpr, NodeStmt, 
-                    Literal, Grouping, Print, Return, Unary, Binary, Var, Variable, While)
+from syntax import (Assign, Block, AbortLoop, Call, Class, Expression, Function, Get, If, Logical, NodeExpr, NodeStmt, 
+                    Literal, Grouping, Print, Return, Set, Unary, Binary, Var, Variable, While)
 
 
 class Interpreter:
@@ -193,6 +193,21 @@ class Interpreter:
                     raise LoxRuntimeError(call.paren, f"Expected {function.arity()} arguments but got {len(arguments)}.")
 
                 return function.call(self, arguments)
+            
+            case Get() as get:
+                instance = self.evaluate(get.instance)
+                if isinstance(instance, LoxInstance):
+                    return instance.get_value(get.name)
+                else:
+                    raise LoxRuntimeError(get.name, "Only class instances have properties callable by '.'.")
+                
+            case Set() as expr:
+                instance = self.evaluate(expr.instance)
+                if not isinstance(instance, LoxInstance):
+                    raise LoxRuntimeError(expr.name, "Only class instances have fields.")
+                value = self.evaluate(expr.value)
+                instance.set_value(expr.name, value)
+                return value
 
             case _:
                 raise NotImplementedError(node)

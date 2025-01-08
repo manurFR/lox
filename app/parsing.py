@@ -1,7 +1,7 @@
 from errors import Errors
 from lexemes import STATEMENTS
-from syntax import (Assign, Binary, Block, AbortLoop, Call, Class, Expression, Function, Grouping, 
-                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Unary, Var, Variable, While)
+from syntax import (Assign, Binary, Block, AbortLoop, Call, Class, Expression, Function, Get, Grouping, 
+                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Set, Unary, Var, Variable, While)
 
 
 class Parser:
@@ -68,8 +68,8 @@ class Parser:
     printStmt      → "print" expression ";" ;
 
     expression     → assignment ;
-    assignment     → IDENTIFIER "=" assignment
-                    | logic_or ;
+    assignment     → ( call "." )? IDENTIFIER "=" assignment
+               |    logic_or ;
     logic_or       → logic_and ( "or" logic_and )* ;
     logic_and      → equality ( "and" equality )* ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -77,7 +77,7 @@ class Parser:
     term           → factor ( ( "-" | "+" ) factor )* ;
     factor         → unary ( ( "/" | "*" ) unary )* ;
     unary          → ( "!" | "-" ) unary | call ;
-    call           → primary ( "(" arguments? ")" )* ;
+    call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
     primary        → "true" | "false" | "nil"
                     | NUMBER | STRING
                     | "(" expression ")"
@@ -328,7 +328,7 @@ class Parser:
         return self.assignment()
     
     def assignment(self):
-        """ assignment     → IDENTIFIER "=" assignment | logic_or ; """
+        """ assignment     → ( call "." )? IDENTIFIER "=" assignment | logic_or ; """
         # Assignments (like "a = 3") are tricky because they start as a normal expression
         #  (here "a" could mean we want the value of the variable) but the parser can only
         #  understand it is an assignment later, when it encounters the '=' token.
@@ -344,6 +344,12 @@ class Parser:
             if isinstance(expr, Variable):
                 name = expr.name
                 return Assign(name, value)
+            elif isinstance(expr, Get):
+                # In the case of an assignment to an instance property, the last part of the
+                #  left side expression has been parsed as a Get ("---.property") but meeting
+                #  and equal sign means it should actually be a Set ("---.property = 0")
+                # We transform and return it. 
+                return Set(expr.instance, expr.name, value)
             else:
                 self.error(currtok, "Invalid assignment target.")
 
@@ -425,11 +431,16 @@ class Parser:
         return self.call()
     
     def call(self):
-        """ call           → primary ( "(" arguments? ")" )* ; """
+        """ call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ; """
         expr = self.primary()
         while True:
             if expr and self.match("LEFT_PAREN"):
                 expr = self.finish_call(expr)
+            elif expr and self.match("DOT"):
+                currtok = self.previous_token()
+                if not self.match("IDENTIFIER"):
+                    raise self.error(currtok, "Expected property name after '.'.")
+                expr = Get(instance=expr, name=self.previous_token())
             else:
                 break
         return expr

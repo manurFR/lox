@@ -48,3 +48,41 @@ print bagel;
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "<instanceof Bagel>"
+
+
+def test_instance_properties(run_lox):
+    source = """
+class Breakfast {}
+var breakfast = Breakfast();
+class Tea {}
+var tea = Tea();
+breakfast.hotdrink = tea;  // setting
+breakfast.hotdrink.sugars = 1;  // setting at the end of a chain
+print tea.sugars;  // getting
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "1"
+
+    # -- syntax errors --
+    status, output, stderr = run_lox(command="run", lox_source="class Test {} var t = Test(); t. = 3;")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at '.': Expected property name after '.'."
+
+    # -- runtime errors --
+    status, output, stderr = run_lox(command="run", lox_source='var a = "not instance"; print a.property;')
+    assert status == 70
+    assert output == ""
+    assert stderr == "Only class instances have properties callable by '.'.\n[line 1]"
+
+    status, output, stderr = run_lox(command="run", lox_source='class Test {} var t = Test(); print t.missing;')
+    assert status == 70
+    assert output == ""
+    assert stderr == "Undefined property 'missing'.\n[line 1]"
+
+    status, output, stderr = run_lox(command="run", lox_source='var a = "not instance"; a.property = 1;')
+    assert status == 70
+    assert output == ""
+    assert stderr == "Only class instances have fields.\n[line 1]"
