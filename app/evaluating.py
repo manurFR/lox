@@ -74,7 +74,13 @@ class Interpreter:
             case Class() as stmt:
                 # two-steps binding so that the class name can be referenced in its body
                 self.environment.define(stmt.name.lexeme, None)
-                klass = LoxClass(stmt.name.lexeme)
+
+                methods = {}
+                for method in stmt.methods:
+                    function = LoxUserFunction(method, self.environment)
+                    methods[method.name.lexeme] = function
+
+                klass = LoxClass(stmt.name.lexeme, methods)
                 self.environment.assign(stmt.name, klass)
         
             case _:
@@ -197,7 +203,7 @@ class Interpreter:
             case Get() as get:
                 instance = self.evaluate(get.instance)
                 if isinstance(instance, LoxInstance):
-                    return instance.get_value(get.name)
+                    return instance.get(get.name)
                 else:
                     raise LoxRuntimeError(get.name, "Only class instances have properties callable by '.'.")
                 

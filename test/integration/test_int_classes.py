@@ -12,8 +12,9 @@ class MapleSyrup {
 print MapleSyrup;
 """.strip()
     
-    _, output, _ = run_lox(command="run", lox_source=source)
+    _, output, stderr = run_lox(command="run", lox_source=source)
 
+    assert stderr == ""
     assert output == "<class MapleSyrup>"
 
     # -- syntax errors --
@@ -86,3 +87,16 @@ print tea.sugars;  // getting
     assert status == 70
     assert output == ""
     assert stderr == "Only class instances have fields.\n[line 1]"
+
+
+def test_calling_instance_methods(run_lox):
+    source = """
+class Bacon {
+    eat() { print "Yummy!"; }
+}
+Bacon().eat();
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "Yummy!"

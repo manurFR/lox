@@ -11,6 +11,7 @@ from syntax import (AbortLoop, Assign, Binary, Block, Call, Class, Expression, F
 class FlowType(Enum):
     NONE = -1
     FUNCTION = 0
+    METHOD = 1
     LOOP = 10
 
 
@@ -50,6 +51,9 @@ class Resolver:
             case Class() as stmt:
                 self._declare(stmt.name)
                 self._define(stmt.name)
+                for method in stmt.methods:
+                    declaration = FlowType.METHOD
+                    self.resolve_function(method, declaration)
 
             case Expression() as stmt:
                 self.resolve_expression(stmt.expr)
@@ -65,7 +69,7 @@ class Resolver:
                 self.resolve_expression(stmt.expr)
 
             case Return() as stmt:
-                if self.current_flow != FlowType.FUNCTION:
+                if self.current_flow not in (FlowType.FUNCTION, FlowType.METHOD):
                     self._error(stmt.token, "Can't use 'return' in top-level code.")
                 if stmt.value:
                     self.resolve_expression(stmt.value)
