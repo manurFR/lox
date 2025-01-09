@@ -19,6 +19,7 @@ class LoxCallable(ABC):
 
 
 class LoxUserFunction(LoxCallable):
+    """Actually, this represents functions AND class methods."""
     def __init__(self, declaration: Function, closure: Environment) -> None:
         self.declaration = declaration
         self.closure = closure
@@ -35,6 +36,13 @@ class LoxUserFunction(LoxCallable):
             interpreter.execute_block(self.declaration.body, environment)
         except ReturnException as retex:
             return retex.value
+        
+    def bind(self, instance: 'LoxInstance'):  # type: ignore
+        """For class methods only. When a method is referenced, return it but as a copy 
+           where 'this' is bound to the instance from which it was called."""
+        environment = Environment(self.closure)
+        environment.define("this", instance)
+        return LoxUserFunction(self.declaration, environment)
 
     def __repr__(self) -> str:
         return f"<fn {self.declaration.name.lexeme}>"

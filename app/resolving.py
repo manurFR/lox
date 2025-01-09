@@ -5,7 +5,7 @@ from enum import Enum
 from errors import Errors
 from scanning import Token
 from syntax import (AbortLoop, Assign, Binary, Block, Call, Class, Expression, Function, Get, Grouping, If, Literal, Logical, 
-                    NodeExpr, NodeStmt, Print, Return, Set, Unary, Var, Variable, While)
+                    NodeExpr, NodeStmt, Print, Return, Set, This, Unary, Var, Variable, While)
 
 
 class FlowType(Enum):
@@ -13,6 +13,10 @@ class FlowType(Enum):
     FUNCTION = 0
     METHOD = 1
     LOOP = 10
+
+class ClassType(Enum):
+    NONE = -1
+    CLASS = 0
 
 
 class Resolver:
@@ -25,6 +29,7 @@ class Resolver:
         self.interpreter = interpreter
         self.scopes: deque[dict[str, bool]] = deque()  # Stack
         self.current_flow = FlowType.NONE  # to detect return statements at top level, break outside loops, etc.
+        self.current_classtype = ClassType.NONE  # to detect 'this' outside of class methods 
 
     def resolve(self, node: NodeStmt) -> None:
         """Perform the semantic analysis and keep the record of the found variables.
@@ -33,7 +38,7 @@ class Resolver:
             case Block() as block:
                 self._begin_scope()
                 self.resolve_statements(block.statements)
-                self._end_scopes()                
+                self._end_scope()                
 
             case Var() as var_declaration:
                 self._declare(var_declaration.name)
@@ -49,11 +54,20 @@ class Resolver:
                 self.resolve_function(function, FlowType.FUNCTION)
 
             case Class() as stmt:
+                enclosing_classtype = self.current_classtype
+                self.current_classtype = ClassType.CLASS
+
                 self._declare(stmt.name)
                 self._define(stmt.name)
+
+                self._begin_scope()
+                self._innerscope["this"] = True
                 for method in stmt.methods:
                     declaration = FlowType.METHOD
                     self.resolve_function(method, declaration)
+                self._end_scope()
+
+                self.current_classtype = enclosing_classtype
 
             case Expression() as stmt:
                 self.resolve_expression(stmt.expr)
@@ -123,6 +137,11 @@ class Resolver:
                 self.resolve_expression(expr.instance)
                 self.resolve_expression(expr.value)
 
+            case This() as this:
+                if self.current_classtype == ClassType.NONE:
+                    self._error(this.token, "Can't use 'this' outside of a class.")
+                self.resolve_local(this, this.token)
+
             case Grouping() as grouping:
                 self.resolve_expression(grouping.expr)
 
@@ -159,13 +178,13 @@ class Resolver:
             self._declare(param)
             self._define(param)
         self.resolve_statements(function.body)
-        self._end_scopes()
+        self._end_scope()
         self.current_flow = enclosing_flow
     
     def _begin_scope(self):
         self.scopes.append(dict())
 
-    def _end_scopes(self):
+    def _end_scope(self):
         self.scopes.pop()
 
     def _declare(self, name: Token):

@@ -1,7 +1,7 @@
 from errors import Errors
 from lexemes import STATEMENTS
 from syntax import (Assign, Binary, Block, AbortLoop, Call, Class, Expression, Function, Get, Grouping, 
-                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Set, Unary, Var, Variable, While)
+                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Set, This, Unary, Var, Variable, While)
 
 
 class Parser:
@@ -78,7 +78,7 @@ class Parser:
     factor         → unary ( ( "/" | "*" ) unary )* ;
     unary          → ( "!" | "-" ) unary | call ;
     call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
-    primary        → "true" | "false" | "nil"
+    primary        → "true" | "false" | "nil" | "this"
                     | NUMBER | STRING
                     | "(" expression ")"
                     | IDENTIFIER ;
@@ -447,7 +447,7 @@ class Parser:
     
     def primary(self):
         """
-        primary        → NUMBER | STRING | "true" | "false" | "nil"
+        primary        → NUMBER | STRING | "true" | "false" | "nil" | "this"
                         | "(" expression ")" ;
         """
         if self.match("FALSE"):
@@ -466,6 +466,9 @@ class Parser:
             if not self.match("RIGHT_PAREN"):
                 raise self.error(currtok, "Expected ')' after expression.")
             return Grouping(content)
+        
+        if self.match("THIS"):
+            return This(self.previous_token())
         
         if self.match("IDENTIFIER"):
             return Variable(self.previous_token())

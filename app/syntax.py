@@ -108,6 +108,14 @@ class Set(NodeExpr):
 
     def __repr__(self) -> str:
         return f"{repr(self.instance)}.{self.name.lexeme} = {repr(self.value)}"
+    
+
+@dataclass(frozen=True)
+class This(NodeExpr):
+    token: 'Token'  # type: ignore
+
+    def __repr__(self) -> str:
+        return self.token.lexeme
 
 
 # Nodes for other statements
@@ -169,7 +177,7 @@ class AbortLoop(NodeStmt):
     token: 'Token' # type: ignore
 
     def __repr__(self) -> str:
-        return "break;"
+        return f"{self.token.lexeme};"
         
 
 @dataclass

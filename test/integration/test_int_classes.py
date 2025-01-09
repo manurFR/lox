@@ -100,3 +100,33 @@ Bacon().eat();
     _, output, _ = run_lox(command="run", lox_source=source)
 
     assert output == "Yummy!"
+
+
+def test_methods_using_this(run_lox):
+    source = """
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "This " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "chocolate";
+cake.taste();
+
+var cake2 = Cake();
+cake2.flavor = "cinnamon";
+cake.taste = cake2.taste;  // the copied taste() function should keep 'this' referencing the cake2 flavor
+cake.taste();
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "This chocolate cake is delicious!\nThis cinnamon cake is delicious!"
+
+    # -- syntax errors --
+    status, output, stderr = run_lox(command="run", lox_source="fun notAMethod() {print this;}")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'this': Can't use 'this' outside of a class."

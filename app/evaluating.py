@@ -5,7 +5,7 @@ from errors import LoxRuntimeError
 from functions import BreakException, LoxCallable, LoxUserFunction, ReturnException, register_native_functions
 from output import stringify
 from syntax import (Assign, Block, AbortLoop, Call, Class, Expression, Function, Get, If, Logical, NodeExpr, NodeStmt, 
-                    Literal, Grouping, Print, Return, Set, Unary, Binary, Var, Variable, While)
+                    Literal, Grouping, Print, Return, Set, This, Unary, Binary, Var, Variable, While)
 
 
 class Interpreter:
@@ -214,6 +214,9 @@ class Interpreter:
                 value = self.evaluate(expr.value)
                 instance.set_value(expr.name, value)
                 return value
+            
+            case This() as this:
+                return self.lookup_variable(this.token, this)
 
             case _:
                 raise NotImplementedError(node)
