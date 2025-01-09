@@ -12,11 +12,19 @@ class LoxClass(LoxCallable):
     def __repr__(self) -> str:
         return f"<class {self.name}>"
     
-    def call(self, interpreter, arguments: list[Any]) -> Any: 
-        return LoxInstance(self)
+    def call(self, interpreter, arguments: list[Any]) -> Any:
+        """Creating an instance of the class.
+           Call the init() method immediately if it exists."""
+        instance = LoxInstance(self)
+        if initializer := self.find_method("init"):
+            initializer.bind(instance).call(interpreter, arguments)
+        return instance
 
     def arity(self) -> int:
-        return 0  # TODO constructor arguments
+        if initializer := self.find_method("init"):
+            return initializer.arity()
+        else:
+            return 0
     
     def find_method(self, name: str) -> Optional[LoxUserFunction]:
         return self.methods.get(name)  # None if no method by that name

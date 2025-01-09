@@ -12,6 +12,7 @@ class FlowType(Enum):
     NONE = -1
     FUNCTION = 0
     METHOD = 1
+    INITIALIZER = 2
     LOOP = 10
 
 class ClassType(Enum):
@@ -63,7 +64,10 @@ class Resolver:
                 self._begin_scope()
                 self._innerscope["this"] = True
                 for method in stmt.methods:
-                    declaration = FlowType.METHOD
+                    if method.name.lexeme == "init":
+                        declaration = FlowType.INITIALIZER
+                    else:
+                        declaration = FlowType.METHOD
                     self.resolve_function(method, declaration)
                 self._end_scope()
 
@@ -83,9 +87,11 @@ class Resolver:
                 self.resolve_expression(stmt.expr)
 
             case Return() as stmt:
-                if self.current_flow not in (FlowType.FUNCTION, FlowType.METHOD):
+                if self.current_flow == FlowType.NONE:
                     self._error(stmt.token, "Can't use 'return' in top-level code.")
                 if stmt.value:
+                    if self.current_flow == FlowType.INITIALIZER:
+                        self._error(stmt.token, "Can't return a value from an initializer.")
                     self.resolve_expression(stmt.value)
 
             case While() as stmt:

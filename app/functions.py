@@ -20,9 +20,10 @@ class LoxCallable(ABC):
 
 class LoxUserFunction(LoxCallable):
     """Actually, this represents functions AND class methods."""
-    def __init__(self, declaration: Function, closure: Environment) -> None:
+    def __init__(self, declaration: Function, closure: Environment, is_initializer: bool) -> None:
         self.declaration = declaration
         self.closure = closure
+        self.is_initializer = is_initializer
 
     def arity(self) -> int:
         return len(self.declaration.params)
@@ -35,14 +36,19 @@ class LoxUserFunction(LoxCallable):
         try:
             interpreter.execute_block(self.declaration.body, environment)
         except ReturnException as retex:
+            if self.is_initializer:
+                return self.closure.get_at(0, "this")
             return retex.value
+        # special case: initializer methods always return 'this', the constructed instance
+        if self.is_initializer:
+            return self.closure.get_at(0, "this")
         
     def bind(self, instance: 'LoxInstance'):  # type: ignore
         """For class methods only. When a method is referenced, return it but as a copy 
            where 'this' is bound to the instance from which it was called."""
         environment = Environment(self.closure)
         environment.define("this", instance)
-        return LoxUserFunction(self.declaration, environment)
+        return LoxUserFunction(self.declaration, environment, self.is_initializer)
 
     def __repr__(self) -> str:
         return f"<fn {self.declaration.name.lexeme}>"

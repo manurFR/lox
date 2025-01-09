@@ -130,3 +130,40 @@ cake.taste();
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at 'this': Can't use 'this' outside of a class."
+
+
+def test_class_initializers(run_lox):
+    source = """
+class Coffee {
+  init(sugars) {
+    this.sugars = sugars;
+    if (sugars == "no") {
+        print "No sugar for you, then!";
+        return;  // return without arguments are allowed in initializers, but the method still returns the instance
+    }
+    print "Brewing coffee...";
+  }
+
+  taste() {
+    print "Coffee with " + this.sugars + " sugar cubes.";
+  }
+}
+
+var coffee = Coffee("two");
+coffee.taste();
+print coffee.init("three");  // init() called directly should always return the instance
+coffee.taste();
+print coffee.init("no"); 
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "Brewing coffee...\nCoffee with two sugar cubes.\n" + \
+                     "Brewing coffee...\n<instanceof Coffee>\nCoffee with three sugar cubes.\n" + \
+                     "No sugar for you, then!\n<instanceof Coffee>"
+
+    # -- syntax errors --
+    status, output, stderr = run_lox(command="run", lox_source='class Test {init() {return "yo";} }')
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'return': Can't return a value from an initializer."

@@ -62,7 +62,7 @@ class Interpreter:
                 self.execute_block(block.statements, environment=blockscope)
 
             case Function() as declaration:
-                function = LoxUserFunction(declaration, self.environment)
+                function = LoxUserFunction(declaration, self.environment, is_initializer=False)
                 self.environment.define(declaration.name.lexeme, function)
 
             case Return() as stmt:
@@ -77,7 +77,8 @@ class Interpreter:
 
                 methods = {}
                 for method in stmt.methods:
-                    function = LoxUserFunction(method, self.environment)
+                    function = LoxUserFunction(method, self.environment,
+                                               is_initializer=(method.name.lexeme == "init"))
                     methods[method.name.lexeme] = function
 
                 klass = LoxClass(stmt.name.lexeme, methods)
