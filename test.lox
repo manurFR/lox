@@ -1,10 +1,2 @@
-{
-    var bar = "global bar";
-    var quz = "before";
-    {
-        var quz = "after";
-        print quz;
-        print bar;
-    }
-    print quz;
-}
+class Test {hello() {print "hello";}}
+t = Test();

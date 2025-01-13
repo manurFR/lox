@@ -8,7 +8,7 @@ from parsing import Parser
 from evaluating import Interpreter
 from syntax import Expression
 
-AVAILABLE_COMMANDS = ['tokenize', 'parse', 'evaluate', 'run', 'repl']
+AVAILABLE_COMMANDS = ['tokenize', 'parse', 'ast', 'evaluate', 'run', 'repl']
 
 
 def usage(exitcode=0, msg=None):
@@ -35,10 +35,15 @@ def process(interpreter: Interpreter, command: str, source: str, exit_on_errors:
     statements = parser.parse()
 
     if command == "parse":
-        if statements:
-            print(statements[0])
+        for stmt in statements:
+            print(stmt)
         check_errors()
         exit(0)
+    if command == "ast":
+        for stmt in statements:
+            stmt.print_ast()
+        check_errors()
+        exit(0)       
 
     # exit if syntax errors before semantic pass
     if exit_on_errors:
