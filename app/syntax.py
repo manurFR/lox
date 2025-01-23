@@ -104,7 +104,7 @@ class Assign(NodeExpr):
         return f"{self.name.lexeme} = {self.value}"
     
     def print_ast(self, level=0):
-        _print_level(level, f"[Expr] Variable (setting): {self.name.lexeme}")
+        _print_level(level, f"[Expr] Assign (variable): {self.name.lexeme}")
         self.value.print_ast(level + 1)
     
 
@@ -112,7 +112,7 @@ class Assign(NodeExpr):
 class Call(NodeExpr):
     callee: NodeExpr  # the left expression that evaluates to the function to call
     paren: 'Token'  # type: ignore  # the token for the opening parenthese, for error reporting
-    arguments: list[NodeExpr]
+    arguments: tuple[NodeExpr]
 
     def __repr__(self) -> str:
         return f"{self.callee}({', '.join(repr(arg) for arg in self.arguments)})"
@@ -156,6 +156,18 @@ class Set(NodeExpr):
         self.instance.print_ast(level + 1)
         _print_level(level, "...with value:")
         self.value.print_ast(level + 1)
+        
+
+@dataclass(frozen=True)
+class Super(NodeExpr):
+    token: 'Token'  # type: ignore
+    method: 'Token'  # type: ignore
+    
+    def __repr__(self) -> str:
+        return f"super.{self.method.lexeme}"
+    
+    def print_ast(self, level=0):
+        _print_level(level, f"[Expr] Super, calling method {self.method.lexeme}() from superclass")
     
 
 @dataclass(frozen=True)
@@ -312,13 +324,17 @@ class Return(NodeStmt):
 @dataclass
 class Class(NodeStmt):
     name: 'Token'  # type: ignore
+    superclass: Optional[Variable]
     methods: list[Function]
 
     def __repr__(self) -> str:
-        return f"class {self.name.lexeme} {{ {self.methods} }}"
+        return f"class {self.name.lexeme}{f' < {self.superclass}' if self.superclass else ''} {{ {self.methods} }}"
     
     def print_ast(self, level=0):
-        _print_level(level, f"[Stmt] Class (declaration): {self.name.lexeme}{' with methods:' if self.methods else ''}")
+        _print_level(level, f"[Stmt] Class (declaration): {self.name.lexeme}")
+        if self.superclass:
+            _print_level(level, f"... inheriting from superclass {self.superclass}")
+        _print_level(level, f"{'... with methods:' if self.methods else ''}")
         for method in self.methods:
             method.print_ast(level + 1)
 

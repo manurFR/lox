@@ -104,7 +104,15 @@ def test_Return_repr():
 
 def test_Class_repr():
     assert repr(Class(name=Token("IDENTIFIER", "Breakfast", None, 1),
+                      superclass=None,
                       methods=[Function(name=Token("IDENTIFIER", "cook", None, 2),
                                         params=[],
                                         body=[Print(Literal("Eggs a-frying!"))])])) == \
                                             'class Breakfast { [fun cook() { [print eggs a-frying!;] }] }'
+                                            
+    assert repr(Class(name=Token("IDENTIFIER", "Breakfast", None, 1),
+                      superclass=Variable(name=Token("IDENTIFIER", "Meal", None, 1)),
+                      methods=[Function(name=Token("IDENTIFIER", "cook", None, 2),
+                                        params=[],
+                                        body=[Print(Literal("Eggs a-frying!"))])])) == \
+                                            'class Breakfast < Meal { [fun cook() { [print eggs a-frying!;] }] }'

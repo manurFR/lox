@@ -5,7 +5,7 @@ from errors import LoxRuntimeError
 from functions import BreakException, LoxCallable, LoxUserFunction, ReturnException, register_native_functions
 from output import stringify
 from syntax import (Assign, Block, AbortLoop, Call, Class, Expression, Function, Get, If, Logical, NodeExpr, NodeStmt, 
-                    Literal, Grouping, Print, Return, Set, This, Unary, Binary, Var, Variable, While)
+                    Literal, Grouping, Print, Return, Set, Super, This, Unary, Binary, Var, Variable, While)
 
 
 class Interpreter:
@@ -72,8 +72,18 @@ class Interpreter:
                 raise ReturnException(value)
             
             case Class() as stmt:
+                superclass = None
+                if stmt.superclass:
+                    superclass = self.evaluate(stmt.superclass)
+                    if not isinstance(superclass, LoxClass):
+                        raise LoxRuntimeError(stmt.superclass.name, "Superclass must be a class.")
+                
                 # two-steps binding so that the class name can be referenced in its body
                 self.environment.define(stmt.name.lexeme, None)
+                
+                if stmt.superclass:
+                    self.environment = Environment(self.environment)
+                    self.environment.define("super", superclass)
 
                 methods = {}
                 for method in stmt.methods:
@@ -81,7 +91,11 @@ class Interpreter:
                                                is_initializer=(method.name.lexeme == "init"))
                     methods[method.name.lexeme] = function
 
-                klass = LoxClass(stmt.name.lexeme, methods)
+                klass = LoxClass(stmt.name.lexeme, superclass, methods)
+                
+                if stmt.superclass and self.environment.enclosing:
+                    self.environment = self.environment.enclosing
+                
                 self.environment.assign(stmt.name, klass)
         
             case _:
@@ -215,6 +229,16 @@ class Interpreter:
                 value = self.evaluate(expr.value)
                 instance.set_value(expr.name, value)
                 return value
+            
+            case Super() as expr:
+                distance = self._locals[expr]
+                superclass = self.environment.get_at(distance, "super")
+                object = self.environment.get_at(distance - 1, "this")
+                
+                method = superclass.find_method(expr.method.lexeme)
+                if method is None:
+                    raise LoxRuntimeError(expr.method, f"Undefined property '{expr.method.lexeme}'.")
+                return method.bind(object)
             
             case This() as this:
                 return self.lookup_variable(this.token, this)

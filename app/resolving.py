@@ -5,7 +5,7 @@ from enum import Enum
 from errors import Errors
 from scanning import Token
 from syntax import (AbortLoop, Assign, Binary, Block, Call, Class, Expression, Function, Get, Grouping, If, Literal, Logical, 
-                    NodeExpr, NodeStmt, Print, Return, Set, This, Unary, Var, Variable, While)
+                    NodeExpr, NodeStmt, Print, Return, Set, Super, This, Unary, Var, Variable, While)
 
 
 class FlowType(Enum):
@@ -18,6 +18,7 @@ class FlowType(Enum):
 class ClassType(Enum):
     NONE = -1
     CLASS = 0
+    SUBCLASS = 1
 
 
 class Resolver:
@@ -60,8 +61,17 @@ class Resolver:
 
                 self._declare(stmt.name)
                 self._define(stmt.name)
+                
+                if stmt.superclass:
+                    if stmt.name.lexeme == stmt.superclass.name.lexeme:
+                        self._error(stmt.superclass.name, "A class can't inherit from itself.")
+                    self.current_classtype = ClassType.SUBCLASS
+                    self.resolve_expression(stmt.superclass)
+                    
+                    self._begin_scope()  # for "super"
+                    self._innerscope["super"] = True
 
-                self._begin_scope()
+                self._begin_scope()  # for "this" and the methods
                 self._innerscope["this"] = True
                 for method in stmt.methods:
                     if method.name.lexeme == "init":
@@ -69,7 +79,10 @@ class Resolver:
                     else:
                         declaration = FlowType.METHOD
                     self.resolve_function(method, declaration)
-                self._end_scope()
+                self._end_scope()  # for "this" and the methods
+                
+                if stmt.superclass:
+                    self._end_scope()  # for "super"
 
                 self.current_classtype = enclosing_classtype
 
@@ -142,6 +155,13 @@ class Resolver:
             case Set() as expr:
                 self.resolve_expression(expr.instance)
                 self.resolve_expression(expr.value)
+                
+            case Super() as expr:
+                if self.current_classtype == ClassType.NONE:
+                    self._error(expr.token, "Can't use 'super' outside of a class.")
+                elif self.current_classtype == ClassType.CLASS:
+                    self._error(expr.token, "Can't use 'super' in a class with no superclass.")
+                self.resolve_local(expr, expr.token)
 
             case This() as this:
                 if self.current_classtype == ClassType.NONE:

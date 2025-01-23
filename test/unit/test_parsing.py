@@ -2,7 +2,7 @@ import pytest
 import re
 from parsing import Binary, Unary, Literal, Grouping, Parser, ParserError
 from scanning import Token
-from syntax import Assign, Call, Logical, Variable
+from syntax import Assign, Call, Logical, Super, Variable
 from tokens import AND, DIVISE, LESS_EQUAL, MINUS, NOT_EQUAL, OR, PLUS
 
 TOKEN_PATTERN = re.compile(r'(\w+) (".*"|.*) (null|.+)')
@@ -92,7 +92,7 @@ def test_Parser_call_no_arguments():
     tokens = _text2tokens("""IDENTIFIER "clock" clock
                              LEFT_PAREN ( null
                              RIGHT_PAREN ) null""")
-    assert Parser(tokens).call() == Call(Variable(tokens[0]), tokens[2], arguments=[])
+    assert Parser(tokens).call() == Call(Variable(tokens[0]), tokens[2], arguments=tuple())
 
 
 def test_Parser_call_two_arguments():
@@ -102,7 +102,7 @@ def test_Parser_call_two_arguments():
                              COMMA , null
                              NUMBER 2 2.0
                              RIGHT_PAREN ) null""")
-    assert Parser(tokens).call() == Call(Variable(tokens[0]), tokens[5], arguments=[Literal(1.0), Literal(2.0)])
+    assert Parser(tokens).call() == Call(Variable(tokens[0]), tokens[5], arguments=(Literal(1.0), Literal(2.0)))
 
 
 def test_Parser_call_too_many_arguments(capsys):
@@ -136,6 +136,13 @@ def test_Parser_primary():
     assert Parser(grouping_tokens).primary() == Grouping(Literal(3.14))
 
     assert Parser([Token("IDENTIFIER", "pi", None, 1)]).primary() == Variable(Token("IDENTIFIER", "pi", None, 1))
+    
+    assert Parser(_text2tokens("""SUPER super null
+                                  DOT . null
+                                  IDENTIFIER eat null
+                                  LEFT_PAREN ( null
+                                  RIGHT_PAREN ) null""")).primary() == Super(Token("SUPER", "super", None, 1),
+                                                                             Token("IDENTIFIER", "eat", None, 1))
 
 
 def test_Parser_primary_with_unterminated_parentheses():
@@ -197,7 +204,7 @@ def test_Parser_finish_call_no_arguments():
     assert isinstance(node, Call)
     assert node.callee == Variable(tokens[0])
     assert node.paren == tokens[2]
-    assert node.arguments == []
+    assert node.arguments == tuple()
 
 
 def test_Parser_finish_call_with_unterminated_parentheses():

@@ -5,8 +5,9 @@ from scanning import Token
 
 
 class LoxClass(LoxCallable):
-    def __init__(self, name: str, methods: dict[str, LoxUserFunction]) -> None:
+    def __init__(self, name: str, superclass: Optional['LoxClass'], methods: dict[str, LoxUserFunction]) -> None:
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
     def __repr__(self) -> str:
@@ -27,7 +28,11 @@ class LoxClass(LoxCallable):
             return 0
     
     def find_method(self, name: str) -> Optional[LoxUserFunction]:
-        return self.methods.get(name)  # None if no method by that name
+        if name in self.methods:
+            return self.methods[name]
+        if self.superclass:
+            return self.superclass.find_method(name)
+        return None  # if no method found by that name
     
 
 class LoxInstance:

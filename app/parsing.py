@@ -1,7 +1,7 @@
 from errors import Errors
 from lexemes import STATEMENTS
 from syntax import (Assign, Binary, Block, AbortLoop, Call, Class, Expression, Function, Get, Grouping, 
-                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Set, This, Unary, Var, Variable, While)
+                    If, Literal, Logical, NodeExpr, NodeStmt, Print, Return, Set, Super, This, Unary, Var, Variable, While)
 
 
 class Parser:
@@ -62,7 +62,8 @@ class Parser:
 
     returnStmt     → "return" expression? ";" ;
 
-    classDecl      → "class" IDENTIFIER "{" function* "}" ;
+    classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
+                    "{" function* "}" ;
 
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
@@ -81,7 +82,8 @@ class Parser:
     primary        → "true" | "false" | "nil" | "this"
                     | NUMBER | STRING
                     | "(" expression ")"
-                    | IDENTIFIER ;
+                    | IDENTIFIER 
+                    | "super" "." IDENTIFIER;
     
     arguments      → expression ( "," expression )* ;
     """
@@ -302,12 +304,18 @@ class Parser:
         return Function(name, parameters, body)
     
     def class_declaration(self):
-        """ classDecl      → "class" IDENTIFIER "{" function* "}" ; """
+        """ classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ; """
         currtok = self.peek()  # the CLASS token
 
         if not self.match("IDENTIFIER"):
             raise self.error(currtok, "Expected class name.")
         name = self.previous_token()
+        
+        superclass = None
+        if self.match("LESS"):
+            if not self.match("IDENTIFIER"):
+                raise self.error(currtok, "Expected superclass name.")
+            superclass = Variable(self.previous_token())
 
         if not self.match("LEFT_BRACE"):
             raise self.error(name, "Expected '{' before class body.")
@@ -319,7 +327,7 @@ class Parser:
         if not self.match("RIGHT_BRACE"):
             raise self.error(name, "Expected '}' after class body.")
         
-        return Class(name, methods)
+        return Class(name, superclass, methods)
 
     # Expression parsing
 
@@ -448,6 +456,7 @@ class Parser:
     def primary(self):
         """
         primary        → NUMBER | STRING | "true" | "false" | "nil" | "this"
+                        | IDENTIFIER | "super" "." IDENTIFIER;
                         | "(" expression ")" ;
         """
         if self.match("FALSE"):
@@ -472,6 +481,15 @@ class Parser:
         
         if self.match("IDENTIFIER"):
             return Variable(self.previous_token())
+        
+        if self.match("SUPER"):
+            currtok = self.previous_token()  # the "SUPER" token
+            if not self.match("DOT"):
+                raise self.error(currtok, "Expected '.' after 'super'.")
+            if not self.match("IDENTIFIER"):
+                raise self.error(currtok, "Expected superclass method name.")
+            method = self.previous_token()
+            return Super(currtok, method)
         
         # Nothing matched
         raise self.error(self.peek(), "Expected expression.")
@@ -520,7 +538,7 @@ class Parser:
         if not self.match("RIGHT_PAREN"):
             raise self.error(currtok, "Expected ')' after arguments.")
         
-        return Call(callee, self.previous_token(), arguments)
+        return Call(callee, self.previous_token(), tuple(arguments))
     
     def error(self, token, message):
         if token.toktype == "EOF":

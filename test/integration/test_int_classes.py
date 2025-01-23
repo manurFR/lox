@@ -167,3 +167,87 @@ print coffee.init("no");
     assert status == 65
     assert output == ""
     assert stderr == "[line 1] Error at 'return': Can't return a value from an initializer."
+
+
+def test_inheritance(run_lox):
+    source = """
+class Cereal {
+  taste() {print "Yummy!";}
+}
+
+class CornFlakes < Cereal {}
+
+CornFlakes().taste();
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "Yummy!"
+
+    # -- syntax errors --
+    status, output, stderr = run_lox(command="run", lox_source="class Test < Test {}")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'Test': A class can't inherit from itself."
+
+    # -- runtime errors --
+    status, output, stderr = run_lox(command="run", lox_source='var NotAClass = "not!"; class Test < NotAClass {}')
+    assert status == 70
+    assert output == ""
+    assert stderr == "Superclass must be a class.\n[line 1]"
+
+
+def test_super(run_lox):
+    source = """
+class Cereal {
+  taste() {print "Yummy!";}
+}
+
+class CornFlakes < Cereal {
+  taste() {print "Crunch Crunch...";}
+  savour() {
+    // this should be able to print different outputs for these two methods...
+    super.taste();
+    this.taste();
+  }
+}
+
+class TopBrandCornFlakes < CornFlakes {} // ...especially from subclasses
+
+TopBrandCornFlakes().savour();
+""".strip()
+    
+    _, output, _ = run_lox(command="run", lox_source=source)
+
+    assert output == "Yummy!\nCrunch Crunch..."
+    
+    # -- syntax errors --
+    status, output, stderr = run_lox(command="run", lox_source="""class Root {} 
+                                                                  class Test < Root {hello() {super}}""")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 2] Error at 'super': Expected '.' after 'super'."
+    
+    status, output, stderr = run_lox(command="run", lox_source="""class Root {} 
+                                                                  class Test < Root {hello() {super.1}}""")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 2] Error at 'super': Expected superclass method name."
+    
+    status, output, stderr = run_lox(command="run", lox_source="super.butImNotInAClass();")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'super': Can't use 'super' outside of a class."
+    
+    status, output, stderr = run_lox(command="run", lox_source="class Test {hello() {super.noSuperClass();}}")
+    assert status == 65
+    assert output == ""
+    assert stderr == "[line 1] Error at 'super': Can't use 'super' in a class with no superclass."
+    
+    # -- runtime errors --
+    status, output, stderr = run_lox(command="run", lox_source="""class Root {} 
+                                                                  class Test < Root {hello() {super.method();}}
+                                                                  Test().hello();""")
+    assert status == 70
+    assert output == ""
+    assert stderr == "Undefined property 'method'.\n[line 2]"
